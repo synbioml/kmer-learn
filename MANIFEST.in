@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include setup.py
+recursive-include kmer *.h
+recursive-include kmer *.c
+recursive-include examples *.ipynb
