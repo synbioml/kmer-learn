@@ -137,7 +137,7 @@ def test_enriched_kmers_identified():
     )
     positives = ["ACGTACGTACGT"] * 50
     scorer.fit(positives)
-    top_kmers = scorer.kmer_scores_.sort_values(ascending=False).head(4).index.tolist()
+    top_kmers = [k for k, v in sorted(scorer.kmer_scores_.items(), key=lambda x: -x[1])[:4]]
     # The 4-mers of "ACGTACGT..." are ACGT, CGTA, GTAC, TACG.
     assert "ACGT" in top_kmers
     assert "CGTA" in top_kmers or "GTAC" in top_kmers or "TACG" in top_kmers

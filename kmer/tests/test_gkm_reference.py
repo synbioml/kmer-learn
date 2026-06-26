@@ -203,3 +203,77 @@ def test_windowed_gkm_kernel_basic():
     assert T.shape[1] == 4
     assert T.shape[2] == 4
     assert T.shape[0] >= 1
+
+
+# ======================================================================
+# Window overhang tests
+# ======================================================================
+
+def test_windowed_kernel_no_right_overhang():
+    """Windows must not overhang past pad_right on the right side."""
+    from kmer.kernels import WindowedGKMKernel
+    import numpy as np
+
+    seqs = [
+        "ACGTACGTACGTACGTACGTAC",
+        "TTTTAAAAGGGGCCCCAAAATT",
+        "ACGTTGCATGCATGCATGCATG",
+    ]
+    seqlen = len(seqs[0])
+
+    kern = WindowedGKMKernel(L=6, k=4, d=2, window=12, shift=4, padding=0)
+    kern.set_references(seqs)
+    T = np.asarray(kern.kernel())
+    n_windows = T.shape[0]
+
+    # Last window end = (n_windows-1)*shift + window
+    last_end = (n_windows - 1) * 4 + 12
+    assert last_end <= seqlen, (
+        f"Window overhangs: last_end={last_end}, seqlen={seqlen}, n_windows={n_windows}"
+    )
+
+
+def test_windowed_kernel_with_pad_right():
+    """With pad_right=2, windows can overhang by at most 2."""
+    from kmer.kernels import WindowedGKMKernel
+    import numpy as np
+
+    seqs = [
+        "ACGTACGTACGTACGTACGTAC",
+        "TTTTAAAAGGGGCCCCAAAATT",
+        "ACGTTGCATGCATGCATGCATG",
+    ]
+    seqlen = len(seqs[0])
+    pad_right = 2
+
+    kern = WindowedGKMKernel(L=6, k=4, d=2, window=12, shift=4, padding=(0, pad_right))
+    kern.set_references(seqs)
+    T = np.asarray(kern.kernel())
+    n_windows = T.shape[0]
+
+    last_end = (n_windows - 1) * 4 + 12
+    overhang = last_end - seqlen
+    assert overhang <= pad_right, (
+        f"Window overhangs past pad_right: overhang={overhang}, pad_right={pad_right}, "
+        f"last_end={last_end}, seqlen={seqlen}, n_windows={n_windows}"
+    )
+
+
+def test_sliding_window_no_right_overhang():
+    """Sliding window query should also not overhang past pad_right."""
+    from kmer.kernels import GKMKernel
+    import numpy as np
+
+    kern = GKMKernel(L=6, k=4, d=2, kernel_type="truncated", use_rc=True)
+    kern.set_references(SEQS_6)
+
+    long_seq = "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT"  # 40 nt
+    seqlen = len(long_seq)
+
+    W = kern.sliding_window_query_kernel([long_seq], window=10, shift=5, padding=0)
+    n_windows = W[0].shape[0]
+    last_end = (n_windows - 1) * 5 + 10
+    assert last_end <= seqlen, (
+        f"Sliding window overhangs: last_end={last_end}, seqlen={seqlen}, "
+        f"n_windows={n_windows}"
+    )

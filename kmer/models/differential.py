@@ -15,7 +15,6 @@ from __future__ import annotations
 from typing import Optional, Union, Callable
 
 import numpy as np
-import pandas as pd
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.naive_bayes import MultinomialNB
@@ -57,9 +56,10 @@ class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
 
     Attributes
     ----------
-    kmer_scores_ : pd.Series
+    kmer_scores_ : dict
         Log-odds score per k-mer (index = feature name from featurizer).
         Positive score = enriched in positives; negative = depleted.
+        Use ``sorted(scorer.kmer_scores_.items(), key=lambda x: -x[1])`` to rank.
     classes_ : np.ndarray
         Array of class labels, ``[0, 1]``.
     n_positives_ : int
@@ -76,7 +76,7 @@ class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
     ... )
     >>> scorer.fit(positives=["ACGTACGTACGT"] * 10)
     >>> scores = scorer.decision_function(["ACGTACGTACGT", "TTTTAAAATTTT"])
-    >>> top_motifs = scorer.kmer_scores_.sort_values(ascending=False).head(10)
+    >>> top_motifs = sorted(scorer.kmer_scores_.items(), key=lambda x: -x[1])[:10]
     """
 
     def __init__(
@@ -147,10 +147,8 @@ class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
             log_odds = np.log(pos_freq) - np.log(neg_freq)
         log_odds = np.nan_to_num(log_odds, nan=0.0, posinf=0.0, neginf=0.0)
 
-        self.kmer_scores_ = pd.Series(
-            log_odds,
-            index=self.featurizer.get_feature_names_out(),
-        )
+        names = self.featurizer.get_feature_names_out()
+        self.kmer_scores_ = {name: float(score) for name, score in zip(names, log_odds)}
         # Also keep as ndarray for fast scoring.
         self._log_odds_ = log_odds.astype(np.float64)
         self.classes_ = np.array([0, 1])
