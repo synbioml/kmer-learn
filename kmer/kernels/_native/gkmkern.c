@@ -1136,9 +1136,9 @@ int gkm_compute_n_windows(int seqlen, int window, int shift,
             w++;
             continue;
         }
+        /* Stop if the window overhangs past pad_right (before counting). */
+        if (end > seqlen + pad_right) break;
         n_windows++;
-        /* Stop once we've covered the last L-mer. */
-        if (start >= seqlen - L - pad_right) break;
         w++;
         if (w > 1000000) break;  /* safety */
     }
@@ -1337,9 +1337,9 @@ static int iter_windows(int seqlen, int window, int shift,
         int eff_end = end > seqlen ? seqlen : end;
         int eff_len = eff_end - eff_start;
         if (eff_len >= L) {
+            if (end > seqlen + pad_right) break;
             cb(n_valid, start, eff_start, eff_len, user_data);
             n_valid++;
-            if (start >= seqlen - L - pad_right) break;
         } else {
             if (start >= seqlen - L + 1) break;
         }
@@ -2587,8 +2587,8 @@ int gkm_weighted_kernel_sliding_query(const gkm_weighted_kernel_t *kernel,
             free(matching_bases);
             kmer_tree_destroy(tree);
 
+            if (end > seqlen + pad_right) break;
             w_idx++;
-            if (start >= seqlen - L - pad_right) break;
         } else {
             if (start >= seqlen - L + 1) break;
         }
