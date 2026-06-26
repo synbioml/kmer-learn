@@ -79,7 +79,7 @@ scorer = DifferentialKmerScorer(
     background=KmerShuffler(k=2, seed=42),
 )
 scorer.fit(positives)
-top_motifs = scorer.kmer_scores_.sort_values(ascending=False).head(20)
+top_motifs = sorted(scorer.kmer_scores_.items(), key=lambda x: -x[1])[:20]
 ```
 
 ```python
