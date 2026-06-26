@@ -83,7 +83,19 @@ mismatch_ext = _ext(
 )
 
 
+
+# --- ann: HNSW index (C++ with vendored hnswlib) ----------------------
+ann_ext = Extension(
+    name="kmer.ann._native._hnsw",
+    sources=["kmer/ann/_native/_gkm_hnsw.cpp"],
+    include_dirs=["kmer", "kmer/ann/_native", "kmer/kernels/_native"],
+    language="c++",
+    extra_compile_args=["-std=c++11", "-O3", "-Wall", "-fopenmp", "-fpermissive", "-Wno-write-strings"],
+    extra_link_args=["-fopenmp"],
+    libraries=(["m"] if os.name != "nt" else []),
+)
+
 setup(
     ext_modules=[gkm_ext, shuffler_ext, chunker_ext,
-                 spectrum_ext, gappy_ext, mismatch_ext],
+                 spectrum_ext, gappy_ext, mismatch_ext, ann_ext],
 )
