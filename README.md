@@ -51,6 +51,8 @@ All encoders support `canonical_rc=True` for reverse-complement collapsing.
 ### Sequence perturbation
 - **KmerShuffler** — k-mer-preserving shuffle via random Eulerian paths in the De Bruijn graph. Three endpoint modes (preserve / free / crop). Philox4×32-10 RNG, reproducible across `n_jobs`.
 - **Chunker** — block-level perturbation: split into chunks of size `[min, max]`, optionally reverse-complement each, shuffle, concatenate. Five residual-handling modes, two algorithms (random / backtrack).
+- **LocalShuffler** — C-backed local permutation with a strict maximum positional displacement. Random collision chains use adaptive soft free-first (`L`) and hard augmenting-path (`H`) limits; supports `str`, `bytes`, and 1D NumPy arrays.
+- **LocalChunker** — locally permutes pre-existing chunks by composing `LocalShuffler`; displacement is measured in chunk positions, and list, tuple, or 1D NumPy outer containers are preserved.
 - **BaseBackgroundModel** — ABC for custom background models.
 
 ### Utilities

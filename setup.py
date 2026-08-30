@@ -4,6 +4,7 @@ Compiles the following extensions:
   - kmer.kernels._native._gkmkern       (gkm kernel family)
   - kmer.perturb._native._shuffler      (k-mer Eulerian shuffler)
   - kmer.perturb._native._chunker       (sequence chunker)
+  - kmer.perturb._native._local         (position-bounded local shuffler)
   - kmer.encoders._native._spectrum     (rolling-hash k-mer counter)
   - kmer.encoders._native._gappy        (masked-hash gappy k-mer counter)
   - kmer.encoders._native._mismatch     (mismatch k-mer counter)
@@ -43,7 +44,7 @@ gkm_ext = _ext(
     libraries=(["m"] if os.name != "nt" else []),
 )
 
-# --- perturb: shuffler + chunker ---------------------------------------
+# --- perturb: shuffler + chunker + local shuffler ----------------------
 shuffler_ext = _ext(
     name="kmer.perturb._native._shuffler",
     sources=["kmer/perturb/_native/_shuffler_pylib.c"],
@@ -57,6 +58,11 @@ chunker_ext = _ext(
     include_dirs=["kmer/perturb/_native"],
     extra_compile_args=["-O3", "-Wall", "-fopenmp"],
     extra_link_args=["-fopenmp"],
+)
+local_ext = _ext(
+    name="kmer.perturb._native._local",
+    sources=["kmer/perturb/_native/_local_pylib.c"],
+    include_dirs=["kmer/perturb/_native"],
 )
 
 # --- encoders: spectrum + gappy + mismatch -----------------------------
@@ -96,6 +102,6 @@ ann_ext = Extension(
 )
 
 setup(
-    ext_modules=[gkm_ext, shuffler_ext, chunker_ext,
+    ext_modules=[gkm_ext, shuffler_ext, chunker_ext, local_ext,
                  spectrum_ext, gappy_ext, mismatch_ext, ann_ext],
 )
