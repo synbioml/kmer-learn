@@ -381,14 +381,6 @@ static PyMethodDef HNSW_methods[] = {
 
 static PyTypeObject HNSWType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "kmer.ann._native._hnsw.HNSWIndex",
-    .tp_basicsize = sizeof(HNSWObj),
-    .tp_dealloc = (destructor)HNSW_dealloc,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_doc = "HNSW index for sequence kernels and distances.",
-    .tp_methods = HNSW_methods,
-    .tp_init = (initproc)HNSW_init,
-    .tp_new = PyType_GenericNew,
 };
 
 static PyModuleDef moddef = {
@@ -397,6 +389,14 @@ static PyModuleDef moddef = {
 };
 
 PyMODINIT_FUNC PyInit__hnsw(void) {
+    HNSWType.tp_name = "kmer.ann._native._hnsw.HNSWIndex";
+    HNSWType.tp_basicsize = sizeof(HNSWObj);
+    HNSWType.tp_dealloc = (destructor)HNSW_dealloc;
+    HNSWType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+    HNSWType.tp_doc = "HNSW index for sequence kernels and distances.";
+    HNSWType.tp_methods = HNSW_methods;
+    HNSWType.tp_init = (initproc)HNSW_init;
+    HNSWType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&HNSWType) < 0) return NULL;
     PyObject *m = PyModule_Create(&moddef);
     if (!m) return NULL;

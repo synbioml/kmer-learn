@@ -2,6 +2,10 @@
 
 ## Completed
 
+- [x] Make HNSW type initialization portable to MSVC C++14.
+  - [x] Replace mixed designated initialization with runtime field assignment.
+  - [x] Rebuild HNSW and pass ANN and full-suite tests.
+
 - [x] Make OpenMP loops compatible with MSVC OpenMP 2.0.
   - [x] Use predeclared canonical loop indices in all three parallel loops.
   - [x] Rebuild extensions and validate parallel paths and the full suite.
