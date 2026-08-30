@@ -2,6 +2,11 @@
 
 ## Completed
 
+- [x] Repair Windows wheel compilation with MSVC-native flags.
+  - [x] Replace GNU optimization, warning, standard, and OpenMP flags on Windows.
+  - [x] Validate Windows, macOS, and Linux extension metadata.
+  - [x] Rebuild native extensions and pass 737 full-suite tests.
+
 - [x] Repair macOS ARM64 wheel compilation.
   - [x] Omit unsupported OpenMP flags from macOS extension builds.
   - [x] Remove the unnecessary GCC-only `-fpermissive` C++ flag.

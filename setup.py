@@ -13,18 +13,43 @@ All paths must be relative to this file (setuptools requirement).
 The root kmer/ directory is added to every extension's include path
 so that all C code can `#include "_common.h"` (the shared header).
 """
-import os
 import sys
 
 from setuptools import setup, Extension
 
 
-# Apple Clang does not support -fopenmp without an external libomp toolchain.
-# The native code only uses OpenMP pragmas, so macOS wheels safely build and
-# run serially while other platforms retain their existing OpenMP behavior.
-_OPENMP_COMPILE_ARGS = [] if sys.platform == "darwin" else ["-fopenmp"]
-_OPENMP_LINK_ARGS = [] if sys.platform == "darwin" else ["-fopenmp"]
-_C_OPENMP_ARGS = ["-O3", "-Wall"] + _OPENMP_COMPILE_ARGS
+# The native code only uses OpenMP pragmas, not direct runtime calls. Apple
+# Clang wheels therefore build serially without an external libomp toolchain;
+# MSVC and GCC retain their native OpenMP modes.
+if sys.platform == "win32":
+    _BASE_COMPILE_ARGS = ["/O2", "/W3"]
+    _OPENMP_COMPILE_ARGS = ["/openmp"]
+    _OPENMP_LINK_ARGS = []
+    _CXX_STANDARD_ARGS = ["/std:c++14"]
+    _CXX_WARNING_ARGS = []
+    _MATH_LIBRARIES = []
+elif sys.platform == "darwin":
+    _BASE_COMPILE_ARGS = ["-O3", "-Wall"]
+    _OPENMP_COMPILE_ARGS = []
+    _OPENMP_LINK_ARGS = []
+    _CXX_STANDARD_ARGS = ["-std=c++11"]
+    _CXX_WARNING_ARGS = ["-Wno-write-strings"]
+    _MATH_LIBRARIES = ["m"]
+else:
+    _BASE_COMPILE_ARGS = ["-O3", "-Wall"]
+    _OPENMP_COMPILE_ARGS = ["-fopenmp"]
+    _OPENMP_LINK_ARGS = ["-fopenmp"]
+    _CXX_STANDARD_ARGS = ["-std=c++11"]
+    _CXX_WARNING_ARGS = ["-Wno-write-strings"]
+    _MATH_LIBRARIES = ["m"]
+
+_C_OPENMP_ARGS = _BASE_COMPILE_ARGS + _OPENMP_COMPILE_ARGS
+_CXX_OPENMP_ARGS = (
+    _CXX_STANDARD_ARGS
+    + _BASE_COMPILE_ARGS
+    + _CXX_WARNING_ARGS
+    + _OPENMP_COMPILE_ARGS
+)
 
 
 def _ext(name, sources, include_dirs=None, extra_compile_args=None,
@@ -34,9 +59,13 @@ def _ext(name, sources, include_dirs=None, extra_compile_args=None,
         name=name,
         sources=sources,
         include_dirs=base_includes + (include_dirs or []),
-        extra_compile_args=extra_compile_args or ["-O3", "-Wall"],
-        extra_link_args=extra_link_args or [],
-        libraries=libraries or [],
+        extra_compile_args=(
+            _BASE_COMPILE_ARGS
+            if extra_compile_args is None
+            else extra_compile_args
+        ),
+        extra_link_args=[] if extra_link_args is None else extra_link_args,
+        libraries=[] if libraries is None else libraries,
     )
 
 
@@ -50,7 +79,7 @@ gkm_ext = _ext(
     include_dirs=["kmer/kernels/_native"],
     extra_compile_args=_C_OPENMP_ARGS,
     extra_link_args=_OPENMP_LINK_ARGS,
-    libraries=(["m"] if os.name != "nt" else []),
+    libraries=_MATH_LIBRARIES,
 )
 
 # --- perturb: shuffler + chunker + local shuffler ----------------------
@@ -105,11 +134,9 @@ ann_ext = Extension(
     sources=["kmer/ann/_native/_gkm_hnsw.cpp"],
     include_dirs=["kmer", "kmer/ann/_native", "kmer/kernels/_native"],
     language="c++",
-    extra_compile_args=[
-        "-std=c++11", "-O3", "-Wall", "-Wno-write-strings"
-    ] + _OPENMP_COMPILE_ARGS,
+    extra_compile_args=_CXX_OPENMP_ARGS,
     extra_link_args=_OPENMP_LINK_ARGS,
-    libraries=(["m"] if os.name != "nt" else []),
+    libraries=_MATH_LIBRARIES,
 )
 
 setup(
