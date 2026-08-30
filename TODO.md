@@ -2,6 +2,11 @@
 
 ## Completed
 
+- [x] Repair the reported GitHub build dependency failure.
+  - [x] Remove the unused pandas import instead of adding a dependency.
+  - [x] Correct the push workflow branch from `main` to `master`.
+  - [x] Validate metadata and pass 737 full-suite tests.
+
 - [x] Add `LocalChunker` as a composition layer over `LocalShuffler`.
   - [x] Support list, tuple, and one-dimensional NumPy chunk collections.
   - [x] Preserve chunk objects and strictly bound displacement in chunk units.
