@@ -236,8 +236,9 @@ static PyObject * Chunker_chunk_many(PyObject *self, PyObject *args,
         /* Parallel: each task gets an independent key derived from
          * (master_seed, task_index). Output is reproducible for a given
          * n_jobs, but differs from the single-threaded stream. */
+        Py_ssize_t i;
         #pragma omp parallel for num_threads(threads) schedule(dynamic)
-        for (Py_ssize_t i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
             philox_stream_t local_rng;
             uint32_t key[2];
             philox_derive_key(master_seed, (uint64_t)i, key);

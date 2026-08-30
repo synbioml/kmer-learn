@@ -2,6 +2,10 @@
 
 ## Completed
 
+- [x] Make OpenMP loops compatible with MSVC OpenMP 2.0.
+  - [x] Use predeclared canonical loop indices in all three parallel loops.
+  - [x] Rebuild extensions and validate parallel paths and the full suite.
+
 - [x] Repair Windows wheel compilation with MSVC-native flags.
   - [x] Replace GNU optimization, warning, standard, and OpenMP flags on Windows.
   - [x] Validate Windows, macOS, and Linux extension metadata.

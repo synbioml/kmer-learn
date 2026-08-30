@@ -1076,8 +1076,9 @@ void gkm_kernel_eval_batch(const gkm_kernel_t *kernel,
     int nthreads = kernel->base.param.nthreads;
     if (nthreads < 1) nthreads = 1;
 
+    int i;
     #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
-    for (int i = 0; i < n_q; i++) {
+    for (i = 0; i < n_q; i++) {
         double *row = res + (size_t)i * n_ref;
         gkm_kernel_eval_all(kernel, queries[i], row);
     }
