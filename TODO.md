@@ -2,6 +2,12 @@
 
 ## Completed
 
+- [x] Repair macOS ARM64 wheel compilation.
+  - [x] Omit unsupported OpenMP flags from macOS extension builds.
+  - [x] Remove the unnecessary GCC-only `-fpermissive` C++ flag.
+  - [x] Preserve Linux OpenMP flags and validate extension metadata.
+  - [x] Rebuild native extensions and pass 737 full-suite tests.
+
 - [x] Repair the reported GitHub build dependency failure.
   - [x] Remove the unused pandas import instead of adding a dependency.
   - [x] Correct the push workflow branch from `main` to `master`.

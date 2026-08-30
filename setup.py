@@ -14,8 +14,17 @@ The root kmer/ directory is added to every extension's include path
 so that all C code can `#include "_common.h"` (the shared header).
 """
 import os
+import sys
 
 from setuptools import setup, Extension
+
+
+# Apple Clang does not support -fopenmp without an external libomp toolchain.
+# The native code only uses OpenMP pragmas, so macOS wheels safely build and
+# run serially while other platforms retain their existing OpenMP behavior.
+_OPENMP_COMPILE_ARGS = [] if sys.platform == "darwin" else ["-fopenmp"]
+_OPENMP_LINK_ARGS = [] if sys.platform == "darwin" else ["-fopenmp"]
+_C_OPENMP_ARGS = ["-O3", "-Wall"] + _OPENMP_COMPILE_ARGS
 
 
 def _ext(name, sources, include_dirs=None, extra_compile_args=None,
@@ -39,8 +48,8 @@ gkm_ext = _ext(
         "kmer/kernels/_native/_gkmkern_pylib.c",
     ],
     include_dirs=["kmer/kernels/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
     libraries=(["m"] if os.name != "nt" else []),
 )
 
@@ -49,15 +58,15 @@ shuffler_ext = _ext(
     name="kmer.perturb._native._shuffler",
     sources=["kmer/perturb/_native/_shuffler_pylib.c"],
     include_dirs=["kmer/perturb/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
 )
 chunker_ext = _ext(
     name="kmer.perturb._native._chunker",
     sources=["kmer/perturb/_native/_chunker_pylib.c"],
     include_dirs=["kmer/perturb/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
 )
 local_ext = _ext(
     name="kmer.perturb._native._local",
@@ -70,22 +79,22 @@ spectrum_ext = _ext(
     name="kmer.encoders._native._spectrum",
     sources=["kmer/encoders/_native/_spectrum_pylib.c"],
     include_dirs=["kmer/encoders/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
 )
 gappy_ext = _ext(
     name="kmer.encoders._native._gappy",
     sources=["kmer/encoders/_native/_gappy_pylib.c"],
     include_dirs=["kmer/encoders/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
 )
 mismatch_ext = _ext(
     name="kmer.encoders._native._mismatch",
     sources=["kmer/encoders/_native/_mismatch_pylib.c"],
     include_dirs=["kmer/encoders/_native"],
-    extra_compile_args=["-O3", "-Wall", "-fopenmp"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=_C_OPENMP_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
 )
 
 
@@ -96,8 +105,10 @@ ann_ext = Extension(
     sources=["kmer/ann/_native/_gkm_hnsw.cpp"],
     include_dirs=["kmer", "kmer/ann/_native", "kmer/kernels/_native"],
     language="c++",
-    extra_compile_args=["-std=c++11", "-O3", "-Wall", "-fopenmp", "-fpermissive", "-Wno-write-strings"],
-    extra_link_args=["-fopenmp"],
+    extra_compile_args=[
+        "-std=c++11", "-O3", "-Wall", "-Wno-write-strings"
+    ] + _OPENMP_COMPILE_ARGS,
+    extra_link_args=_OPENMP_LINK_ARGS,
     libraries=(["m"] if os.name != "nt" else []),
 )
 
