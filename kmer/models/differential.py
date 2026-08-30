@@ -19,7 +19,7 @@ import scipy.sparse as sp
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.naive_bayes import MultinomialNB
 
-from ..perturb import BaseBackgroundModel, KmerShuffler, Chunker
+from ..background import BaseBackgroundModel, KmerShuffler, Chunker
 from ..encoders import SpectrumEncoder
 
 # Type alias: background can be a BaseBackgroundModel (Shuffler, Chunker,
@@ -69,7 +69,7 @@ class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
     --------
     >>> from kmer.models import DifferentialKmerScorer
     >>> from kmer.encoders import SpectrumEncoder
-    >>> from kmer.perturb import KmerShuffler
+    >>> from kmer.background import KmerShuffler
     >>> scorer = DifferentialKmerScorer(
     ...     featurizer=SpectrumEncoder(k=4),
     ...     background=KmerShuffler(k=2, seed=42),

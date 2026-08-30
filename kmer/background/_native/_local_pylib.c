@@ -277,7 +277,7 @@ static PyMethodDef LocalShuffler_methods[] = {
 
 static PyTypeObject LocalShufflerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "kmer.perturb._native._local._LocalShuffler",
+    .tp_name = "kmer.background._native._local._LocalShuffler",
     .tp_basicsize = sizeof(LocalShufflerObject),
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc = "Native position-bounded collision-chain shuffler.",
@@ -288,7 +288,7 @@ static PyTypeObject LocalShufflerType = {
 };
 
 static PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT, "kmer.perturb._native._local",
+    PyModuleDef_HEAD_INIT, "kmer.background._native._local",
     "C-backed position-bounded local shuffler.", -1,
     NULL, NULL, NULL, NULL, NULL
 };

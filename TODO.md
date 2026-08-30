@@ -32,14 +32,14 @@
   - [x] Delegate seed/state, L/H resolution, permutation, and statistics.
   - [x] Export and document the public API; pass 737 full-suite tests.
 
-- [x] Select and implement the final `kmer.perturb.LocalShuffler` algorithm.
+- [x] Select and implement the final `kmer.background.LocalShuffler` algorithm.
   - [x] Implement and validate the O(nS) H=0 virtual-tail version.
-  - [x] Preserve it byte-for-byte as `kmer/perturb/_local_virtual_tail.py`.
+  - [x] Preserve it byte-for-byte as `kmer/background/_local_virtual_tail.py`.
   - [x] Prototype and benchmark uniform-kick and free-first collision chains.
   - [x] Select randomized-insertion uniform-kick with soft free-first and hard augmenting fallback.
   - [x] Implement the C extension with `str`, `bytes`, and 1D NumPy array support.
   - [x] Implement adaptive/custom L/H resolution, explicit disabling, and literal aliases.
   - [x] Replace `LocalShuffler`, update tests/documentation, and pass 686 full-suite tests.
   - [x] Validate theoretical marginals, limits/fallbacks, reproducibility, and performance.
-- [x] Locate the `kmer-learn` repository and identify `kmer.perturb` as the integration point.
+- [x] Locate the `kmer-learn` repository and identify `kmer.background` as the integration point.
 - [x] Confirm the public class name `LocalShuffler`.

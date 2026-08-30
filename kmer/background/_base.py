@@ -1,4 +1,4 @@
-"""kmer.perturb._base — abstract base class for background models.
+"""kmer.background._base — abstract base class for background models.
 
 A "background model" generates null-model sequences from real ones:
 shuffles, chunk-shuffles, or any other disruption that preserves some

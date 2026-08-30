@@ -15,7 +15,7 @@ Tests:
 import pytest
 from collections import Counter
 
-from kmer.perturb import Chunker
+from kmer.background import Chunker
 
 
 TEST_SEQUENCES = [

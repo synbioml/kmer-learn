@@ -538,7 +538,7 @@ def nb_09():
         ("code", """import numpy as np
 from kmer.encoders import SpectrumEncoder
 from kmer.models import DifferentialKmerScorer
-from kmer.perturb import KmerShuffler"""),
+from kmer.background import KmerShuffler"""),
         ("md", "## 1. Encode sequences with SpectrumEncoder"),
         ("code", """seqs = ['ACGTACGTACGT', 'TTTTAAAACCCC', 'GCGCGCGCGCGC']
 enc = SpectrumEncoder(k=4, canonical_rc=True)
@@ -641,9 +641,9 @@ for m in [0, 1, 2]:
 def nb_12():
     idx = vignette_index(12)
     cells = [
-        ("md", f"# 12 — Shuffler & Chunker for Negative-Set Generation\n\n{idx}\n\n`kmer.perturb` provides two background models for generating null-model sequences:\n\n- **`KmerShuffler`** — preserves exact k-mer composition via random Eulerian paths in the De Bruijn graph.\n- **`Chunker`** — block-level perturbation: split into chunks, optionally RC, shuffle, concatenate.\n\nBoth implement `BaseBackgroundModel` with `perturb()` / `perturb_many()`."),
+        ("md", f"# 12 — Shuffler & Chunker for Negative-Set Generation\n\n{idx}\n\n`kmer.background` provides two background models for generating null-model sequences:\n\n- **`KmerShuffler`** — preserves exact k-mer composition via random Eulerian paths in the De Bruijn graph.\n- **`Chunker`** — block-level perturbation: split into chunks, optionally RC, shuffle, concatenate.\n\nBoth implement `BaseBackgroundModel` with `perturb()` / `perturb_many()`."),
         ("code", """from collections import Counter
-from kmer.perturb import KmerShuffler, Chunker, BaseBackgroundModel"""),
+from kmer.background import KmerShuffler, Chunker, BaseBackgroundModel"""),
         ("md", "## 1. KmerShuffler — k-mer composition preservation"),
         ("code", """seq = 'AAACCCGGGTTTAAACCCGGGTTT'
 for k in [1, 2, 3]:

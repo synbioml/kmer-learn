@@ -32,7 +32,7 @@ bit-for-bit identical regardless of ``n_jobs``.
 
 Examples
 --------
->>> from kmer.perturb import KmerShuffler
+>>> from kmer.background import KmerShuffler
 >>> sh = KmerShuffler(k=3, seed=42)
 >>> sh.perturb("ACGTACGTACGT")
 'GACGTACGTACG'  # exact trinucleotide composition preserved
@@ -79,8 +79,8 @@ class KmerShuffler(_KmerShuffler, BaseBackgroundModel):
 
     See Also
     --------
-    kmer.perturb.Chunker : block-level sequence perturbation.
-    kmer.perturb.BaseBackgroundModel : abstract interface.
+    kmer.background.Chunker : block-level sequence perturbation.
+    kmer.background.BaseBackgroundModel : abstract interface.
     """
 
     # The C extension implements shuffle() and shuffle_many().

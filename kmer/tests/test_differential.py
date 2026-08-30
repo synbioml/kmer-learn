@@ -5,7 +5,7 @@ import numpy as np
 
 from kmer.models import DifferentialKmerScorer
 from kmer.encoders import SpectrumEncoder
-from kmer.perturb import KmerShuffler, Chunker
+from kmer.background import KmerShuffler, Chunker
 
 
 # ======================================================================

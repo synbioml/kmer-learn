@@ -1,7 +1,7 @@
 """Tests for the BaseBackgroundModel ABC and its concrete implementations."""
 
 import pytest
-from kmer.perturb import BaseBackgroundModel, KmerShuffler, Chunker
+from kmer.background import BaseBackgroundModel, KmerShuffler, Chunker
 
 
 def test_base_background_model_is_abstract():

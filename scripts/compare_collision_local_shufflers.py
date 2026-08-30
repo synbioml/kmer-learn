@@ -1,6 +1,6 @@
 """Compare collision-chain strategies for position-bounded shuffling.
 
-This is an isolated prototype; it is not used by ``kmer.perturb.LocalShuffler``.
+This is an isolated prototype; it is not used by ``kmer.background.LocalShuffler``.
 Each shuffle inserts items in random order into legal destination intervals.
 On collision, the previous occupant is displaced and samples again.
 

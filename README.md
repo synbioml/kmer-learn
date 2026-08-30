@@ -22,7 +22,6 @@ Optional backends (strongly recommended for speed):
 
 ```bash
 pip install rapidfuzz parasail   # 10-100x faster edit distances and alignments
-pip install pyfastx              # fast FASTA parsing for examples
 ```
 
 ## Features
@@ -48,7 +47,7 @@ All encoders support `canonical_rc=True` for reverse-complement collapsing.
 - **LinearSVM** — Linear SVM on encoder features.
 - **KNNClassifier** — k-Nearest Neighbors with a sequence distance.
 
-### Sequence perturbation
+### Background models and sequence perturbation
 - **KmerShuffler** — k-mer-preserving shuffle via random Eulerian paths in the De Bruijn graph. Three endpoint modes (preserve / free / crop). Philox4×32-10 RNG, reproducible across `n_jobs`.
 - **Chunker** — block-level perturbation: split into chunks of size `[min, max]`, optionally reverse-complement each, shuffle, concatenate. Five residual-handling modes, two algorithms (random / backtrack).
 - **LocalShuffler** — C-backed local permutation with a strict maximum positional displacement. Random collision chains use adaptive soft free-first (`L`) and hard augmenting-path (`H`) limits; supports `str`, `bytes`, and 1D NumPy arrays.
@@ -73,7 +72,7 @@ preds = clf.predict(test_seqs)
 ```python
 from kmer.encoders import SpectrumEncoder
 from kmer.models import DifferentialKmerScorer
-from kmer.perturb import KmerShuffler
+from kmer.background import KmerShuffler
 
 # Differential k-mer scoring with dinucleotide-shuffled background
 scorer = DifferentialKmerScorer(

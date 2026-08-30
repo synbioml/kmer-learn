@@ -46,7 +46,7 @@ Philox4×32-10, same as :class:`KmerShuffler`.
 
 Examples
 --------
->>> from kmer.perturb import Chunker
+>>> from kmer.background import Chunker
 >>> ch = Chunker(min_size=2, max_size=4, seed=42)
 >>> ch.perturb("ACGTACGTACGT")
 'GTACACGTACGT'  # same length, blocks shuffled
@@ -85,8 +85,8 @@ class Chunker(_Chunker, BaseBackgroundModel):
 
     See Also
     --------
-    kmer.perturb.KmerShuffler : k-mer-preserving shuffling.
-    kmer.perturb.BaseBackgroundModel : abstract interface.
+    kmer.background.KmerShuffler : k-mer-preserving shuffling.
+    kmer.background.BaseBackgroundModel : abstract interface.
     """
 
     # The C extension implements chunk() and chunk_many().

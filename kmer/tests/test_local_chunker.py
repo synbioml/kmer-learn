@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from kmer.perturb import LocalChunker, LocalShuffler
-from kmer.perturb._base import BaseBackgroundModel
+from kmer.background import LocalChunker, LocalShuffler
+from kmer.background._base import BaseBackgroundModel
 
 
 def _assert_chunk_displacement(chunks, shuffled, max_shift):

@@ -365,7 +365,7 @@ static PyMethodDef KmerShuffler_methods[] = {
 
 static PyTypeObject KmerShufflerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "kmer.perturb._native._shuffler.KmerShuffler",
+    .tp_name = "kmer.background._native._shuffler.KmerShuffler",
     .tp_basicsize = sizeof(KmerShufflerObject),
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc = "K-mer-preserving sequence shuffler.",
@@ -376,7 +376,7 @@ static PyTypeObject KmerShufflerType = {
 };
 
 static PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT, "kmer.perturb._native._shuffler",
+    PyModuleDef_HEAD_INIT, "kmer.background._native._shuffler",
     "C-backed k-mer shuffler.", -1, NULL, NULL, NULL, NULL, NULL
 };
 

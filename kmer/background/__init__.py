@@ -1,4 +1,4 @@
-"""kmer.perturb — sequence disruption for negative-set generation.
+"""kmer.background — sequence disruption for negative-set generation.
 
 Provides:
 - :class:`BaseBackgroundModel` — abstract interface for background models.

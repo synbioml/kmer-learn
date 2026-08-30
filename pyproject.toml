@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kmer-learn"
-version = "0.1.2"
+version = "0.1.3"
 description = "A modern Python toolkit for classical sequence machine learning"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -43,9 +43,6 @@ fast = [
     "rapidfuzz>=3.0",
     "parasail>=1.3",
 ]
-io = [
-    "pyfastx>=0.8",
-]
 test = [
     "pytest>=7.0",
 ]
@@ -57,6 +54,12 @@ dev = [
     "matplotlib",
     "nbformat",
     "nbclient",
+]
+docs = [
+    "sphinx>=7.2,<10",
+    "myst-nb>=1.1",
+    "furo>=2024.1.29",
+    "sphinx-design>=0.6",
 ]
 
 [project.urls]

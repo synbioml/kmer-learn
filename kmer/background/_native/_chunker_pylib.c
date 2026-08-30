@@ -336,7 +336,7 @@ static PyMethodDef Chunker_methods[] = {
 
 static PyTypeObject ChunkerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "kmer.perturb._native._chunker.Chunker",
+    .tp_name = "kmer.background._native._chunker.Chunker",
     .tp_basicsize = sizeof(ChunkerObject),
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc = "Sequence chunker.",
@@ -347,7 +347,7 @@ static PyTypeObject ChunkerType = {
 };
 
 static PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT, "kmer.perturb._native._chunker",
+    PyModuleDef_HEAD_INIT, "kmer.background._native._chunker",
     "C-backed sequence chunker.", -1, NULL, NULL, NULL, NULL, NULL
 };
 

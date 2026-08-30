@@ -6,7 +6,7 @@
  *   - splitmix64 for key derivation
  *
  * Every C extension in kmer includes this via the -I path. Submodule-
- * specific headers (e.g. perturb/_native/_shuffler.c) may add their
+ * specific headers (e.g. background/_native/_shuffler.c) may add their
  * own utilities, but the basics live here.
  */
 #ifndef KMER_COMMON_H_INCLUDED

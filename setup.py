@@ -2,9 +2,9 @@
 
 Compiles the following extensions:
   - kmer.kernels._native._gkmkern       (gkm kernel family)
-  - kmer.perturb._native._shuffler      (k-mer Eulerian shuffler)
-  - kmer.perturb._native._chunker       (sequence chunker)
-  - kmer.perturb._native._local         (position-bounded local shuffler)
+  - kmer.background._native._shuffler      (k-mer Eulerian shuffler)
+  - kmer.background._native._chunker       (sequence chunker)
+  - kmer.background._native._local         (position-bounded local shuffler)
   - kmer.encoders._native._spectrum     (rolling-hash k-mer counter)
   - kmer.encoders._native._gappy        (masked-hash gappy k-mer counter)
   - kmer.encoders._native._mismatch     (mismatch k-mer counter)
@@ -82,25 +82,25 @@ gkm_ext = _ext(
     libraries=_MATH_LIBRARIES,
 )
 
-# --- perturb: shuffler + chunker + local shuffler ----------------------
+# --- background models: shuffler + chunker + local shuffler -----------
 shuffler_ext = _ext(
-    name="kmer.perturb._native._shuffler",
-    sources=["kmer/perturb/_native/_shuffler_pylib.c"],
-    include_dirs=["kmer/perturb/_native"],
+    name="kmer.background._native._shuffler",
+    sources=["kmer/background/_native/_shuffler_pylib.c"],
+    include_dirs=["kmer/background/_native"],
     extra_compile_args=_C_OPENMP_ARGS,
     extra_link_args=_OPENMP_LINK_ARGS,
 )
 chunker_ext = _ext(
-    name="kmer.perturb._native._chunker",
-    sources=["kmer/perturb/_native/_chunker_pylib.c"],
-    include_dirs=["kmer/perturb/_native"],
+    name="kmer.background._native._chunker",
+    sources=["kmer/background/_native/_chunker_pylib.c"],
+    include_dirs=["kmer/background/_native"],
     extra_compile_args=_C_OPENMP_ARGS,
     extra_link_args=_OPENMP_LINK_ARGS,
 )
 local_ext = _ext(
-    name="kmer.perturb._native._local",
-    sources=["kmer/perturb/_native/_local_pylib.c"],
-    include_dirs=["kmer/perturb/_native"],
+    name="kmer.background._native._local",
+    sources=["kmer/background/_native/_local_pylib.c"],
+    include_dirs=["kmer/background/_native"],
 )
 
 # --- encoders: spectrum + gappy + mismatch -----------------------------

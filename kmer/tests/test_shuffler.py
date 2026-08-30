@@ -17,7 +17,7 @@ import pytest
 import numpy as np
 from collections import Counter
 
-from kmer.perturb import KmerShuffler
+from kmer.background import KmerShuffler
 
 
 # Diverse test sequences covering common patterns.

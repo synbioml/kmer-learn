@@ -5,7 +5,7 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from kmer.perturb import LocalShuffler
+from kmer.background import LocalShuffler
 
 
 def _assert_bounded_permutation(source, shuffled, max_shift):

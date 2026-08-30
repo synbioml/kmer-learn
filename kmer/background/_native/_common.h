@@ -1,4 +1,4 @@
-/* kmer/perturb/_native/_common.h — backward-compat shim.
+/* kmer/background/_native/_common.h — backward-compat shim.
  *
  * All shared utilities now live in kmer/_common.h. This file is kept
  * so the existing _shuffler.c and _chunker.c includes keep working
@@ -9,10 +9,10 @@
  * splitmix64, is_strict_acgt, is_iupac) are #defined as aliases for
  * the new kmer_-prefixed versions.
  */
-#ifndef KMER_PERTURB_COMMON_H_INCLUDED
-#define KMER_PERTURB_COMMON_H_INCLUDED
+#ifndef KMER_BACKGROUND_COMMON_H_INCLUDED
+#define KMER_BACKGROUND_COMMON_H_INCLUDED
 
-#include "../../_common.h"  /* path relative to perturb/_native/ */
+#include "../../_common.h"  /* path relative to background/_native/ */
 
 /* Backward-compat aliases. */
 #define NUC_LUT              KMER_NUC_LUT
@@ -27,4 +27,4 @@
 #define philox_derive_key    kmer_philox_derive_key
 #define splitmix64           kmer_splitmix64
 
-#endif  /* KMER_PERTURB_COMMON_H_INCLUDED */
+#endif  /* KMER_BACKGROUND_COMMON_H_INCLUDED */

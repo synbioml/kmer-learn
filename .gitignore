@@ -29,8 +29,9 @@ Thumbs.db
 # pytest
 .pytest_cache/
 
-# Jupyter
+# Jupyter and generated documentation
 .ipynb_checkpoints/
+docs/_build/
 
 # Coverage
 htmlcov/

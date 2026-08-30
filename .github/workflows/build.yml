@@ -23,6 +23,18 @@ jobs:
       - name: Run tests
         run: pytest kmer/tests/ -q
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install documentation dependencies
+        run: pip install -e ".[docs]"
+      - name: Build documentation
+        run: sphinx-build -W --keep-going -b html docs docs/_build/html
+
   build-wheels:
     needs: test
     runs-on: ${{ matrix.os }}
