@@ -1,145 +1,180 @@
-"""Tests for compositional position-bounded chunk permutation."""
+"""Tests for locally bounded shuffling of sampled sequence chunks."""
 
-import numpy as np
+from collections import Counter
+
 import pytest
 
-from kmer.background import LocalChunker, LocalShuffler
+from kmer.background import Chunker, LocalChunker, LocalShuffler
 from kmer.background._base import BaseBackgroundModel
 
 
-def _assert_chunk_displacement(chunks, shuffled, max_shift):
-    positions = {id(chunk): index for index, chunk in enumerate(shuffled)}
-    for original_index, chunk in enumerate(chunks):
-        assert abs(positions[id(chunk)] - original_index) <= max_shift
+def _make_local_chunker(
+    *,
+    min_size=2,
+    max_size=5,
+    max_shift=3,
+    chunk_seed=42,
+    shuffle_seed=123,
+    **chunker_kwargs,
+):
+    return LocalChunker(
+        chunker=Chunker(
+            min_size=min_size,
+            max_size=max_size,
+            seed=chunk_seed,
+            **chunker_kwargs,
+        ),
+        shuffler=LocalShuffler(max_shift=max_shift, seed=shuffle_seed),
+    )
+
+
+def _assert_bounded_chunk_permutation(source, shuffled, max_shift):
+    positions = {chunk: index for index, chunk in enumerate(shuffled)}
+    for original_index, chunk in enumerate(source):
+        assert abs(positions[chunk] - original_index) <= max_shift
 
 
 def test_is_background_model():
-    assert isinstance(LocalChunker(2, seed=42), BaseBackgroundModel)
+    assert isinstance(_make_local_chunker(), BaseBackgroundModel)
 
 
-@pytest.mark.parametrize("length", [0, 1, 2, 7, 32, 100])
-@pytest.mark.parametrize("max_shift", [0, 1, 2, 8, 32])
-def test_list_chunk_displacement_is_strictly_bounded(length, max_shift):
-    chunks = [object() for _ in range(length)]
-    chunker = LocalChunker(max_shift, seed=42)
-    for _ in range(20):
-        shuffled = chunker.shuffle_chunks(chunks)
-        _assert_chunk_displacement(chunks, shuffled, max_shift)
+def test_constructor_requires_component_instances():
+    with pytest.raises(TypeError, match="chunker"):
+        LocalChunker(Chunker, LocalShuffler(2, seed=42))
+    with pytest.raises(TypeError, match="shuffler"):
+        LocalChunker(Chunker(2, 4, seed=42), LocalShuffler)
 
 
-def test_list_preserves_outer_type_and_chunk_identity():
-    chunks = [[index] for index in range(30)]
-    shuffled = LocalChunker(4, seed=42).shuffle_chunks(chunks)
-    assert isinstance(shuffled, list)
-    assert {id(chunk) for chunk in shuffled} == {id(chunk) for chunk in chunks}
-    assert all(shuffled.count(chunk) == 1 for chunk in chunks)
+def test_chunk_matches_explicit_component_composition():
+    sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    expected_chunks = Chunker(2, 5, seed=42).slice_chunks(sequence)
+    shuffled_chunks = LocalShuffler(3, seed=123).shuffle(expected_chunks)
+
+    observed = _make_local_chunker().chunk(sequence)
+    assert observed == "".join(shuffled_chunks)
 
 
-def test_tuple_preserves_outer_type_and_chunk_identity():
-    chunks = tuple([index] for index in range(30))
-    shuffled = LocalChunker(4, seed=42).shuffle_chunks(chunks)
-    assert isinstance(shuffled, tuple)
-    assert {id(chunk) for chunk in shuffled} == {id(chunk) for chunk in chunks}
+def test_fixed_size_chunks_obey_strict_displacement_bound():
+    sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    original_chunks = [sequence[index:index + 2] for index in range(0, 26, 2)]
+    output = _make_local_chunker(
+        min_size=2,
+        max_size=2,
+        max_shift=3,
+    ).chunk(sequence)
+    output_chunks = [output[index:index + 2] for index in range(0, 26, 2)]
+    _assert_bounded_chunk_permutation(original_chunks, output_chunks, 3)
 
 
-@pytest.mark.parametrize("dtype", [np.int16, np.float64, object])
-def test_numpy_preserves_shape_dtype_and_values(dtype):
-    chunks = np.arange(50).astype(dtype)
-    shuffled = LocalChunker(5, seed=42).shuffle_chunks(chunks)
-    assert isinstance(shuffled, np.ndarray)
-    assert shuffled.shape == chunks.shape
-    assert shuffled.dtype == chunks.dtype
-    assert sorted(shuffled.tolist()) == sorted(chunks.tolist())
+def test_length_and_composition_are_preserved():
+    sequence = "AAACCCGGGTTTAAACCCGGGTTT"
+    output = _make_local_chunker().chunk(sequence)
+    assert len(output) == len(sequence)
+    assert Counter(output) == Counter(sequence)
 
 
-def test_numpy_object_array_preserves_chunk_identity():
-    chunks = np.empty(20, dtype=object)
-    chunks[:] = [[index] for index in range(20)]
-    shuffled = LocalChunker(3, seed=42).shuffle_chunks(chunks)
-    assert {id(chunk) for chunk in shuffled} == {id(chunk) for chunk in chunks}
-    _assert_chunk_displacement(chunks, shuffled, 3)
+def test_bytes_input_preserves_type_length_and_composition():
+    sequence = b"AAACCCGGGTTTAAACCCGGGTTT"
+    output = _make_local_chunker().chunk(sequence)
+    assert isinstance(output, bytes)
+    assert len(output) == len(sequence)
+    assert Counter(output) == Counter(sequence)
 
 
-def test_same_seed_matches_local_shuffler_permutation():
-    chunks = [f"chunk-{index}" for index in range(50)]
-    permutation = LocalShuffler(6, seed=123).permutation(len(chunks))
-    expected = [chunks[index] for index in permutation]
-    assert LocalChunker(6, seed=123).shuffle_chunks(chunks) == expected
+def test_empty_and_short_sequences_are_preserved():
+    model = _make_local_chunker(min_size=5, max_size=8)
+    assert model.chunk("") == ""
+    assert model.chunk("AC") == "AC"
 
 
-def test_same_seed_produces_same_call_sequence():
-    chunks = list(range(100))
-    first = LocalChunker(8, seed=42)
-    second = LocalChunker(8, seed=42)
-    assert [first.shuffle_chunks(chunks) for _ in range(4)] == [
-        second.shuffle_chunks(chunks) for _ in range(4)
+def test_optional_strand_flipping_comes_from_chunker():
+    model = _make_local_chunker(
+        min_size=3,
+        max_size=3,
+        max_shift=0,
+        flip_strand=True,
+        flip_strand_prob=1.0,
+    )
+    assert model.chunk("ACGGTT") == "CGTAAC"
+
+
+def test_same_seeds_produce_same_call_sequence():
+    sequence = "ACGT" * 30
+    first = _make_local_chunker()
+    second = _make_local_chunker()
+    assert [first.chunk(sequence) for _ in range(4)] == [
+        second.chunk(sequence) for _ in range(4)
     ]
 
 
+def test_perturb_many_matches_independent_serial_calls():
+    sequences = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ"] * 8
+    serial = _make_local_chunker(min_size=2, max_size=5, max_shift=4)
+    expected = [serial.chunk(sequence) for sequence in sequences]
+
+    batch = _make_local_chunker(min_size=2, max_size=5, max_shift=4)
+    observed = batch.perturb_many(sequences)
+    assert observed == expected
+    assert len(set(observed)) > 1
+
+
+def test_perturb_many_is_reproducible_across_n_jobs():
+    sequences = ["ACGT" * 30] * 8
+    serial = _make_local_chunker().perturb_many(sequences, n_jobs=1)
+    nominal_parallel = _make_local_chunker().perturb_many(sequences, n_jobs=4)
+    assert nominal_parallel == serial
+
+
+def test_perturb_aliases_chunk():
+    sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    expected = _make_local_chunker().chunk(sequence)
+    assert _make_local_chunker().perturb(sequence) == expected
+
+
+@pytest.mark.parametrize("n_jobs", [0, -1, 1.5, True])
+def test_invalid_perturb_many_n_jobs_rejected(n_jobs):
+    with pytest.raises((TypeError, ValueError), match="n_jobs"):
+        _make_local_chunker().perturb_many(["ACGT"], n_jobs=n_jobs)
+
+
+def test_chunk_many_is_not_public():
+    assert not hasattr(_make_local_chunker(), "chunk_many")
+
+
+def test_raw_sequence_interface_rejects_preselected_chunks():
+    with pytest.raises(TypeError, match="sequence"):
+        _make_local_chunker().chunk(["promoter", "exon", "intron"])
+
+
 def test_getstate_setstate_roundtrip():
-    chunks = list(range(100))
-    first = LocalChunker(8, seed=42)
-    first.shuffle_chunks(chunks)
+    sequence = "ACGT" * 50
+    first = _make_local_chunker()
+    first.chunk(sequence)
     state = first.getstate()
-    expected = first.shuffle_chunks(chunks)
+    expected = first.chunk(sequence)
 
-    second = LocalChunker(8, seed=999)
+    second = _make_local_chunker(chunk_seed=999, shuffle_seed=999)
     second.setstate(state)
-    assert second.shuffle_chunks(chunks) == expected
+    assert second.chunk(sequence) == expected
 
 
-def test_shuffle_and_perturb_are_aliases():
-    chunks = list(range(50))
-    expected = LocalChunker(4, seed=42).shuffle_chunks(chunks)
-    assert LocalChunker(4, seed=42).shuffle(chunks) == expected
-    assert LocalChunker(4, seed=42).perturb(chunks) == expected
+def test_invalid_state_rejected():
+    with pytest.raises(TypeError, match="state"):
+        _make_local_chunker().setstate(b"not-a-pair")
 
 
-def test_perturb_many_matches_serial_calls():
-    collections = [list(range(20)), tuple(range(30))]
-    serial = LocalChunker(3, seed=42)
-    expected = [serial.perturb(chunks) for chunks in collections]
-    batch = LocalChunker(3, seed=42)
-    assert batch.perturb_many(collections) == expected
+def test_component_properties_and_stats_are_exposed():
+    model = _make_local_chunker(max_shift=4)
+    model.chunk("ACGT" * 20)
+    assert isinstance(model.chunker, Chunker)
+    assert isinstance(model.shuffler, LocalShuffler)
+    assert model.max_shift == 4
+    assert model.last_stats_["turns"] >= 0
 
 
-def test_permutation_and_limits_delegate():
-    chunker = LocalChunker(32, seed=42, L="H", H=4096)
-    assert chunker.limits_for(200) == (4096, 4096)
-    permutation = chunker.permutation(200)
-    assert sorted(permutation.tolist()) == list(range(200))
-
-
-def test_stats_delegate_and_forced_fallback_works():
-    chunks = list(range(100))
-    chunker = LocalChunker(8, seed=42, L=None, H=0)
-    shuffled = chunker.shuffle_chunks(chunks)
-    assert sorted(shuffled) == chunks
-    assert chunker.last_stats_["fallbacks"] == len(chunks)
-
-
-def test_input_collection_is_not_mutated():
-    chunks = [[index] for index in range(30)]
-    snapshot = list(chunks)
-    LocalChunker(4, seed=42).shuffle_chunks(chunks)
-    assert chunks == snapshot
-    assert all(left is right for left, right in zip(chunks, snapshot))
-
-
-@pytest.mark.parametrize("chunks", ["abc", b"abc", range(10), iter(range(10))])
-def test_unsupported_collection_rejected(chunks):
-    with pytest.raises(TypeError, match="list, tuple"):
-        LocalChunker(2, seed=42).shuffle_chunks(chunks)
-
-
-def test_multidimensional_numpy_collection_rejected():
-    with pytest.raises(ValueError, match="one-dimensional"):
-        LocalChunker(2, seed=42).shuffle_chunks(np.arange(12).reshape(3, 4))
-
-
-def test_repr_shows_configuration():
-    representation = repr(LocalChunker(3, seed=42, L=10, H=100))
+def test_repr_shows_both_components():
+    representation = repr(_make_local_chunker(max_shift=3))
     assert "LocalChunker" in representation
+    assert "Chunker" in representation
+    assert "LocalShuffler" in representation
     assert "max_shift=3" in representation
-    assert "L=10" in representation
-    assert "H=100" in representation

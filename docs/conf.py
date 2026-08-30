@@ -24,7 +24,7 @@ source_suffix = {
 }
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-myst_enable_extensions = ["colon_fence", "deflist", "fieldlist"]
+myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "fieldlist"]
 myst_heading_anchors = 3
 nb_execution_mode = "auto"
 nb_execution_timeout = 120

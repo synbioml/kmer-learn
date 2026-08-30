@@ -534,10 +534,10 @@ print(f"Peak cross-kernel at window position {peak}")"""),
 def nb_09():
     idx = vignette_index(9)
     cells = [
-        ("md", f"# 09 — Spectrum Encoder & Differential k-mer Scoring\n\n{idx}\n\nThis vignette demonstrates:\n1. Using `SpectrumEncoder` to convert sequences into a sparse CSR matrix of k-mer counts.\n2. Using `DifferentialKmerScorer` (Multinomial Naive Bayes) to identify enriched k-mers, with auto-generated negatives via `KmerShuffler`.\n\n**See also:** [12_shuffler_and_chunker.ipynb](12_shuffler_and_chunker.ipynb) for background-model details."),
+        ("md", f"# 09 — Spectrum Encoder & Differential k-mer Scoring\n\n{idx}\n\nThis vignette demonstrates:\n1. Using `SpectrumEncoder` to convert sequences into a sparse CSR matrix of k-mer counts.\n2. Using `KmerMultinomialNB` (Multinomial Naive Bayes) to identify enriched k-mers, with auto-generated negatives via `KmerShuffler`.\n\n**See also:** [12_shuffler_and_chunker.ipynb](12_shuffler_and_chunker.ipynb) for background-model details."),
         ("code", """import numpy as np
 from kmer.encoders import SpectrumEncoder
-from kmer.models import DifferentialKmerScorer
+from kmer.models import KmerMultinomialNB
 from kmer.background import KmerShuffler"""),
         ("md", "## 1. Encode sequences with SpectrumEncoder"),
         ("code", """seqs = ['ACGTACGTACGT', 'TTTTAAAACCCC', 'GCGCGCGCGCGC']
@@ -551,7 +551,7 @@ print('Total counts per seq:', X.sum(axis=1).A1)"""),
         ("code", """np.random.seed(0)
 positives = ['ACGTACGT' + 'ACGT' * np.random.randint(0, 3) for _ in range(50)]
 
-scorer = DifferentialKmerScorer(
+scorer = KmerMultinomialNB(
     featurizer=SpectrumEncoder(k=4),
     background=KmerShuffler(k=1, seed=42),
 )
@@ -565,7 +565,7 @@ for s, sc in zip(test_seqs, scores):
     print(f'  {s}: {sc:.3f}')"""),
         ("md", "## 3. Effect of background stringency"),
         ("code", """for bg_k in [1, 2]:
-    s = DifferentialKmerScorer(
+    s = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=KmerShuffler(k=bg_k, seed=42),
     )
@@ -672,8 +672,8 @@ out = ch.chunk('ACGTACGTACGTACGT')
 print(f'with flip_strand: {out}')"""),
         ("md", "## 5. Batch operations (parallel, reproducible)"),
         ("code", """seqs = ['ACGTACGTACGT', 'TTTTAAAACCCC', 'GCGCGCGCGCGC']
-r1 = KmerShuffler(k=2, seed=42).shuffle_many(seqs, n_jobs=1)
-r2 = KmerShuffler(k=2, seed=42).shuffle_many(seqs, n_jobs=4)
+r1 = KmerShuffler(k=2, seed=42).perturb_many(seqs, n_jobs=1)
+r2 = KmerShuffler(k=2, seed=42).perturb_many(seqs, n_jobs=4)
 print(f'n_jobs=1 == n_jobs=4: {r1 == r2}')"""),
     ]
     return make_notebook(cells)

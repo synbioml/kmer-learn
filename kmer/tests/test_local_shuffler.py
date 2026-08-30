@@ -77,6 +77,17 @@ def test_numpy_view_is_supported():
     assert sorted(shuffled.tolist()) == sorted(source.tolist())
 
 
+@pytest.mark.parametrize("container_type", [list, tuple])
+def test_python_collection_preserves_type_values_and_identity(container_type):
+    source = container_type([index] for index in range(30))
+    shuffled = LocalShuffler(max_shift=4, seed=42).shuffle(source)
+    assert isinstance(shuffled, container_type)
+    assert {id(item) for item in shuffled} == {id(item) for item in source}
+    positions = {id(item): index for index, item in enumerate(shuffled)}
+    for original_index, item in enumerate(source):
+        assert abs(positions[id(item)] - original_index) <= 4
+
+
 def test_multidimensional_numpy_input_rejected():
     with pytest.raises(ValueError, match="one-dimensional"):
         LocalShuffler(max_shift=2).shuffle(np.arange(12).reshape(3, 4))
@@ -125,13 +136,24 @@ def test_invalid_rng_state_rejected():
         shuffler.setstate(b"short")
 
 
-def test_perturb_and_perturb_many_match_serial_calls():
+def test_perturb_many_matches_independent_serial_calls():
     source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     serial = LocalShuffler(max_shift=3, seed=42)
-    expected = [serial.perturb(source), serial.perturb(source)]
+    expected = [serial.shuffle(source), serial.shuffle(source)]
+    assert expected[0] != expected[1]
 
-    batch = LocalShuffler(max_shift=3, seed=42)
-    assert batch.perturb_many([source, source]) == expected
+    perturbed = LocalShuffler(max_shift=3, seed=42)
+    assert perturbed.perturb_many([source, source]) == expected
+
+
+def test_perturb_many_is_reproducible_across_n_jobs():
+    sources = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ"] * 8
+    serial = LocalShuffler(max_shift=3, seed=42).perturb_many(sources)
+    nominal_parallel = LocalShuffler(max_shift=3, seed=42).perturb_many(
+        sources, n_jobs=4
+    )
+    assert nominal_parallel == serial
+    assert len(set(serial)) > 1
 
 
 def test_numpy_perturb_many():
@@ -139,6 +161,16 @@ def test_numpy_perturb_many():
     outputs = LocalShuffler(max_shift=3, seed=42).perturb_many(sources)
     assert [len(output) for output in outputs] == [20, 30]
     assert all(isinstance(output, np.ndarray) for output in outputs)
+
+
+@pytest.mark.parametrize("n_jobs", [0, -1, 1.5, True])
+def test_invalid_perturb_many_n_jobs_rejected(n_jobs):
+    with pytest.raises((TypeError, ValueError), match="n_jobs"):
+        LocalShuffler(2, seed=42).perturb_many(["ACGT"], n_jobs=n_jobs)
+
+
+def test_shuffle_many_is_not_public():
+    assert not hasattr(LocalShuffler(2, seed=42), "shuffle_many")
 
 
 def test_zero_shift_and_short_inputs_are_unchanged_in_value():
@@ -241,4 +273,4 @@ def test_non_integer_shift_rejected(max_shift):
 
 def test_non_sequence_input_rejected():
     with pytest.raises(TypeError):
-        LocalShuffler(max_shift=2).shuffle([1, 2, 3])
+        LocalShuffler(max_shift=2).shuffle(range(3))

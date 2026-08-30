@@ -3,7 +3,7 @@
  * Exposes a single class, KmerShuffler, with:
  *   __init__(k, seed=None, endpoints="free")
  *   shuffle(seq)        -> str | bytes
- *   shuffle_many(seqs, n_jobs=1) -> list[str] | list[bytes]
+ *   _perturb_many_native(seqs, n_jobs=1) -> list[str] | list[bytes]
  *   getstate() -> bytes
  *   setstate(bytes)
  */
@@ -163,11 +163,11 @@ static PyObject * KmerShuffler_shuffle(PyObject *self, PyObject *arg) {
     return result;
 }
 
-/* shuffle_many(seqs, n_jobs=1) — parallel via OpenMP.
+/* _perturb_many_native(seqs, n_jobs=1) — private parallel engine via OpenMP.
  * For reproducibility: each task i uses key derived from (master_seed, i).
  * After all tasks complete, the master RNG is advanced by the number
  * of tasks (so subsequent shuffle() calls don't collide with task streams). */
-static PyObject * KmerShuffler_shuffle_many(PyObject *self, PyObject *args,
+static PyObject * KmerShuffler_perturb_many_native(PyObject *self, PyObject *args,
                                               PyObject *kwds) {
     KmerShufflerObject *o = (KmerShufflerObject *)self;
     PyObject *seqs_obj;
@@ -233,7 +233,7 @@ static PyObject * KmerShuffler_shuffle_many(PyObject *self, PyObject *args,
 
     if (threads == 1) {
         /* Single-threaded: use the master RNG directly so that
-         * shuffle_many(seqs) == [shuffle(s) for s in seqs] bit-for-bit. */
+         * the batch result matches repeated shuffle() calls bit-for-bit. */
         for (Py_ssize_t i = 0; i < n; i++) {
             err_codes[i] = kmer_shuffle_one(
                 seq_bufs[i], (int)seq_lens[i], o->k,
@@ -352,10 +352,8 @@ static PyMethodDef KmerShuffler_methods[] = {
     {"shuffle",      (PyCFunction)KmerShuffler_shuffle,      METH_O,
      "shuffle(seq) -> str | bytes\n\n"
      "Shuffle a single sequence. Returns the same type as the input."},
-    {"shuffle_many", (PyCFunction)KmerShuffler_shuffle_many, METH_VARARGS | METH_KEYWORDS,
-     "shuffle_many(seqs, n_jobs=1) -> list\n\n"
-     "Shuffle many sequences. If a seed was set at construction, output\n"
-     "is bit-for-bit identical regardless of n_jobs."},
+    {"_perturb_many_native", (PyCFunction)KmerShuffler_perturb_many_native, METH_VARARGS | METH_KEYWORDS,
+     "Private batch engine used by perturb_many(seqs, n_jobs=1)."},
     {"getstate",     (PyCFunction)KmerShuffler_getstate,     METH_NOARGS,
      "getstate() -> bytes\n\nReturn the RNG state."},
     {"setstate",     (PyCFunction)KmerShuffler_setstate,     METH_O,

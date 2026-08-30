@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import Iterable
 
+#: Unambiguous uppercase DNA alphabet used by strict k-mer operations.
 ALPHABET = "ACGT"
+#: Uppercase IUPAC nucleotide alphabet accepted by sequence utilities.
 IUPAC_ALPHABET = "ACGTRYSWKMBDHVN"
 
 _ENCODE = {c: i for i, c in enumerate(ALPHABET)}  # A=0, C=1, G=2, T=3

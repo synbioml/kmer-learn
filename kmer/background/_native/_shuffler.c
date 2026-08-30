@@ -18,7 +18,7 @@
  * RNG: Philox4x32-10 (see _common.h). State lives on the Python object;
  * it advances on every edge choice, so successive shuffle() calls with
  * the same Shuffler produce independent outputs. For parallel
- * shuffle_many(), each task gets an independent key derived from the
+ * the private batch engine, each task gets an independent key derived from the
  * master seed + task index — output is bit-for-bit identical regardless
  * of n_jobs.
  */

@@ -3,9 +3,17 @@
 ```{eval-rst}
 .. currentmodule:: kmer.utils
 
-.. autodata:: ALPHABET
+.. py:data:: ALPHABET
+   :type: str
+   :value: "ACGT"
 
-.. autodata:: IUPAC_ALPHABET
+   Unambiguous uppercase DNA alphabet used by strict k-mer operations.
+
+.. py:data:: IUPAC_ALPHABET
+   :type: str
+   :value: "ACGTRYSWKMBDHVN"
+
+   Uppercase IUPAC nucleotide alphabet accepted by sequence utilities.
 
 .. autofunction:: kmer_to_code
 

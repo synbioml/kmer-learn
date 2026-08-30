@@ -112,6 +112,13 @@ class DistanceKernel(BaseDistance):
     radius : float, default 0.0
         Transform radius (exponential_clipped).
 
+    Notes
+    -----
+    Passing a measure with ``is_distance=False`` emits a ``UserWarning``
+    because similarity scores are not converted automatically. Convert the
+    measure to a distance first; alignment measures support
+    ``as_distance=True``.
+
     Examples
     --------
     >>> from kmer.distance import Levenshtein, DistanceKernel
@@ -134,6 +141,15 @@ class DistanceKernel(BaseDistance):
         if transform not in _TRANSFORMS:
             raise ValueError(
                 f"transform must be one of {list(_TRANSFORMS)}, got {transform!r}"
+            )
+        if not distance.is_distance:
+            warnings.warn(
+                "DistanceKernel expects a distance (smaller values mean more "
+                f"similar), but {type(distance).__name__} has is_distance=False "
+                "and returns similarity scores. Convert it to a distance before "
+                "wrapping it; for alignment measures, set as_distance=True.",
+                UserWarning,
+                stacklevel=2,
             )
         self.distance = distance
         self.transform = transform

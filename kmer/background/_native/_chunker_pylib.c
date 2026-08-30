@@ -141,6 +141,79 @@ static PyObject * _build_output(const char *buf, Py_ssize_t len, int is_bytes) {
     return PyUnicode_DecodeASCII(buf, len, "strict");
 }
 
+static int _raise_chunk_error(int rc) {
+    switch (rc) {
+    case CHUNKER_ERR_BAD_RANGE:
+        PyErr_SetString(PyExc_ValueError, "bad chunk size range"); break;
+    case CHUNKER_ERR_MEMORY:
+        PyErr_NoMemory(); break;
+    case CHUNKER_ERR_BAD_ALG:
+        PyErr_SetString(PyExc_ValueError, "bad algorithm"); break;
+    case CHUNKER_ERR_BAD_RESIDUAL:
+        PyErr_SetString(PyExc_ValueError, "bad residual mode"); break;
+    case CHUNKER_ERR_NON_IUPAC:
+        PyErr_SetString(PyExc_ValueError,
+                        "flip_strand=True requires IUPAC characters"); break;
+    default:
+        PyErr_SetString(PyExc_RuntimeError, "chunk failed");
+    }
+    return -1;
+}
+
+static PyObject * Chunker_slice_chunks(PyObject *self, PyObject *arg) {
+    ChunkerObject *o = (ChunkerObject *)self;
+    const char *seq; Py_ssize_t seqlen; int is_bytes;
+    if (_coerce_seq(arg, &seq, &seqlen, &is_bytes) < 0) return NULL;
+
+    int sizes[CHUNKER_MAX_SIZE + 1];
+    int n = 0;
+    int rc = choose_chunk_sizes(
+        (int)seqlen, o->min_sz, o->max_sz,
+        o->algorithm, o->residual_mode, &o->rng, sizes, &n
+    );
+    if (rc != CHUNKER_OK) {
+        _raise_chunk_error(rc);
+        return NULL;
+    }
+
+    PyObject *result = PyList_New(n);
+    if (!result) return NULL;
+    int pos = 0;
+    for (int i = 0; i < n; i++) {
+        int size = sizes[i];
+        const char *chunk = seq + pos;
+        char *flipped = NULL;
+
+        /* Match chunk(): inputs shorter than min_size are returned unchanged. */
+        if (seqlen >= o->min_sz && o->flip_strand &&
+                philox_double(&o->rng) < o->flip_strand_prob) {
+            flipped = (char *)malloc(size);
+            if (!flipped) {
+                Py_DECREF(result);
+                return PyErr_NoMemory();
+            }
+            memcpy(flipped, chunk, size);
+            if (rc_chunk_inplace(flipped, size) < 0) {
+                free(flipped);
+                Py_DECREF(result);
+                _raise_chunk_error(CHUNKER_ERR_NON_IUPAC);
+                return NULL;
+            }
+            chunk = flipped;
+        }
+
+        PyObject *item = _build_output(chunk, size, is_bytes);
+        free(flipped);
+        if (!item) {
+            Py_DECREF(result);
+            return NULL;
+        }
+        PyList_SET_ITEM(result, i, item);
+        pos += size;
+    }
+    return result;
+}
+
 static PyObject * Chunker_chunk(PyObject *self, PyObject *arg) {
     ChunkerObject *o = (ChunkerObject *)self;
     const char *seq; Py_ssize_t seqlen; int is_bytes;
@@ -154,21 +227,7 @@ static PyObject * Chunker_chunk(PyObject *self, PyObject *arg) {
                        &o->rng, out, &out_len);
     if (rc != CHUNKER_OK) {
         free(out);
-        switch (rc) {
-        case CHUNKER_ERR_BAD_RANGE:
-            PyErr_SetString(PyExc_ValueError, "bad chunk size range"); break;
-        case CHUNKER_ERR_MEMORY:
-            PyErr_NoMemory(); break;
-        case CHUNKER_ERR_BAD_ALG:
-            PyErr_SetString(PyExc_ValueError, "bad algorithm"); break;
-        case CHUNKER_ERR_BAD_RESIDUAL:
-            PyErr_SetString(PyExc_ValueError, "bad residual mode"); break;
-        case CHUNKER_ERR_NON_IUPAC:
-            PyErr_SetString(PyExc_ValueError,
-                             "flip_strand=True requires IUPAC characters"); break;
-        default:
-            PyErr_SetString(PyExc_RuntimeError, "chunk failed");
-        }
+        _raise_chunk_error(rc);
         return NULL;
     }
     PyObject *r = _build_output(out, out_len, is_bytes);
@@ -176,7 +235,7 @@ static PyObject * Chunker_chunk(PyObject *self, PyObject *arg) {
     return r;
 }
 
-static PyObject * Chunker_chunk_many(PyObject *self, PyObject *args,
+static PyObject * Chunker_perturb_many_native(PyObject *self, PyObject *args,
                                       PyObject *kwds) {
     ChunkerObject *o = (ChunkerObject *)self;
     PyObject *seqs_obj;
@@ -224,7 +283,7 @@ static PyObject * Chunker_chunk_many(PyObject *self, PyObject *args,
 
     if (threads == 1) {
         /* Single-threaded: use the master RNG directly so that
-         * chunk_many(seqs) == [chunk(s) for s in seqs] bit-for-bit. */
+         * the batch result matches repeated chunk() calls bit-for-bit. */
         for (Py_ssize_t i = 0; i < n; i++) {
             err_codes[i] = chunk_one(seq_bufs[i], (int)seq_lens[i],
                                       o->min_sz, o->max_sz,
@@ -291,28 +350,36 @@ static PyObject * Chunker_chunk_many(PyObject *self, PyObject *args,
 
 static PyObject * Chunker_getstate(PyObject *self, PyObject *Py_UNUSED(ign)) {
     ChunkerObject *o = (ChunkerObject *)self;
-    char buf[24];
-    memcpy(buf + 0,  &o->rng.key[0], 4);
-    memcpy(buf + 4,  &o->rng.key[1], 4);
-    memcpy(buf + 8,  &o->rng.counter[0], 4);
-    memcpy(buf + 12, &o->rng.counter[1], 4);
-    memcpy(buf + 16, &o->rng.counter[2], 4);
-    memcpy(buf + 20, &o->rng.counter[3], 4);
-    return PyBytes_FromStringAndSize(buf, 24);
+    char state[44];
+    memcpy(state + 0, o->rng.key, 8);
+    memcpy(state + 8, o->rng.counter, 16);
+    memcpy(state + 24, o->rng.buf, 16);
+    memcpy(state + 40, &o->rng.buf_used, 4);
+    return PyBytes_FromStringAndSize(state, sizeof(state));
 }
 
 static PyObject * Chunker_setstate(PyObject *self, PyObject *arg) {
     ChunkerObject *o = (ChunkerObject *)self;
-    char *buf; Py_ssize_t len;
-    if (PyBytes_AsStringAndSize(arg, &buf, &len) < 0) return NULL;
-    if (len < 24) { PyErr_SetString(PyExc_ValueError, "state too short"); return NULL; }
-    memcpy(&o->rng.key[0], buf + 0, 4);
-    memcpy(&o->rng.key[1], buf + 4, 4);
-    memcpy(&o->rng.counter[0], buf + 8, 4);
-    memcpy(&o->rng.counter[1], buf + 12, 4);
-    memcpy(&o->rng.counter[2], buf + 16, 4);
-    memcpy(&o->rng.counter[3], buf + 20, 4);
-    o->rng.buf_used = 4;
+    char *state; Py_ssize_t length;
+    if (PyBytes_AsStringAndSize(arg, &state, &length) < 0) return NULL;
+    if (length != 24 && length != 44) {
+        PyErr_SetString(PyExc_ValueError,
+                        "state must contain exactly 24 or 44 bytes");
+        return NULL;
+    }
+    memcpy(o->rng.key, state + 0, 8);
+    memcpy(o->rng.counter, state + 8, 16);
+    if (length == 44) {
+        memcpy(o->rng.buf, state + 24, 16);
+        memcpy(&o->rng.buf_used, state + 40, 4);
+        if (o->rng.buf_used < 0 || o->rng.buf_used > 4) {
+            PyErr_SetString(PyExc_ValueError, "invalid Philox buffer state");
+            return NULL;
+        }
+    } else {
+        /* Legacy states omitted buffered values and resume at a block edge. */
+        o->rng.buf_used = 4;
+    }
     Py_RETURN_NONE;
 }
 
@@ -325,10 +392,12 @@ static PyObject * Chunker_repr(PyObject *self) {
 }
 
 static PyMethodDef Chunker_methods[] = {
+    {"slice_chunks", (PyCFunction)Chunker_slice_chunks, METH_O,
+     "slice_chunks(seq) -> list[str] | list[bytes]"},
     {"chunk",      (PyCFunction)Chunker_chunk,      METH_O,
      "chunk(seq) -> str | bytes"},
-    {"chunk_many", (PyCFunction)Chunker_chunk_many, METH_VARARGS | METH_KEYWORDS,
-     "chunk_many(seqs, n_jobs=1) -> list"},
+    {"_perturb_many_native", (PyCFunction)Chunker_perturb_many_native, METH_VARARGS | METH_KEYWORDS,
+     "Private batch engine used by perturb_many(seqs, n_jobs=1)."},
     {"getstate",   (PyCFunction)Chunker_getstate,   METH_NOARGS, "Get RNG state."},
     {"setstate",   (PyCFunction)Chunker_setstate,   METH_O, "Set RNG state."},
     {NULL, NULL, 0, NULL}

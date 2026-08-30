@@ -3,13 +3,16 @@
 ```{eval-rst}
 .. currentmodule:: kmer.models
 
-.. autoclass:: DifferentialKmerScorer
+.. autoclass:: KmerMultinomialNB
    :members:
 
-.. autoclass:: KernelSVM
+.. autoclass:: KmerLinearRegression
    :members:
 
 .. autoclass:: LinearSVM
+   :members:
+
+.. autoclass:: KernelSVM
    :members:
 
 .. autoclass:: KNNClassifier

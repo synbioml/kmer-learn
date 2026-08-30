@@ -181,7 +181,7 @@ static int rc_chunk_inplace(char *chunk, int len) {
     return 0;
 }
 
-/* ----- Public entry point ----- */
+/* ----- Public entry points ----- */
 
 #define CHUNKER_OK                0
 #define CHUNKER_ERR_BAD_RANGE    -1
@@ -189,6 +189,67 @@ static int rc_chunk_inplace(char *chunk, int len) {
 #define CHUNKER_ERR_BAD_ALG      -3
 #define CHUNKER_ERR_BAD_RESIDUAL -4
 #define CHUNKER_ERR_NON_IUPAC    -5
+
+/* Sample chunk sizes without slicing or reordering sequence data. */
+static int choose_chunk_sizes(int seqlen, int min_sz, int max_sz,
+                              int algorithm, int residual_mode,
+                              philox_stream_t *rng, int *sizes, int *n_out) {
+    if (min_sz < 1 || max_sz < min_sz || max_sz > CHUNKER_MAX_SIZE) {
+        return CHUNKER_ERR_BAD_RANGE;
+    }
+    if (seqlen == 0) {
+        *n_out = 0;
+        return CHUNKER_OK;
+    }
+    if (seqlen < min_sz) {
+        sizes[0] = seqlen;
+        *n_out = 1;
+        return CHUNKER_OK;
+    }
+
+    int n = 0;
+    int residual = 0;
+    if (algorithm == 0) {
+        n = greedy_random(seqlen, min_sz, max_sz, rng, sizes, &residual);
+        if (residual > 0) {
+            n = apply_residual(sizes, n, residual, residual_mode, rng);
+        }
+    } else if (algorithm == 1) {
+        int64_t *dp = (int64_t *)malloc((seqlen + 1) * sizeof(int64_t));
+        if (!dp) return CHUNKER_ERR_MEMORY;
+        if (dp_count_ways(seqlen, min_sz, max_sz, dp) < 0) {
+            free(dp);
+            return CHUNKER_ERR_MEMORY;
+        }
+        if (dp[seqlen] > 0) {
+            n = dp_sample(seqlen, min_sz, max_sz, dp, rng, sizes);
+        } else {
+            int best_r = -1;
+            for (int r = 1; r < min_sz; r++) {
+                if (seqlen - r >= 0 && dp[seqlen - r] > 0) {
+                    best_r = r;
+                    break;
+                }
+            }
+            if (best_r < 0) {
+                free(dp);
+                n = greedy_random(seqlen, min_sz, max_sz, rng, sizes, &residual);
+                if (residual > 0) {
+                    n = apply_residual(sizes, n, residual, residual_mode, rng);
+                }
+            } else {
+                n = dp_sample(seqlen - best_r, min_sz, max_sz, dp, rng, sizes);
+                n = apply_residual(sizes, n, best_r, residual_mode, rng);
+            }
+        }
+        free(dp);
+    } else {
+        return CHUNKER_ERR_BAD_ALG;
+    }
+
+    *n_out = n;
+    return CHUNKER_OK;
+}
 
 static int chunk_one(const char *seq, int seqlen,
                      int min_sz, int max_sz,
@@ -198,62 +259,20 @@ static int chunk_one(const char *seq, int seqlen,
                      double flip_strand_prob,
                      philox_stream_t *rng,
                      char *out, int *out_len) {
-    if (min_sz < 1 || max_sz < min_sz || max_sz > CHUNKER_MAX_SIZE) {
-        return CHUNKER_ERR_BAD_RANGE;
-    }
-    /* Trivial edge cases. */
+    int sizes_buf[CHUNKER_MAX_SIZE + 1];
+    int n = 0;
+    int rc = choose_chunk_sizes(
+        seqlen, min_sz, max_sz, algorithm, residual_mode,
+        rng, sizes_buf, &n
+    );
+    if (rc != CHUNKER_OK) return rc;
+
+    /* Trivial edge cases retain the original no-flip behavior. */
     if (seqlen == 0) { *out_len = 0; return CHUNKER_OK; }
     if (seqlen < min_sz) {
-        /* Can't form a single valid chunk — just copy input. */
         memcpy(out, seq, seqlen);
         *out_len = seqlen;
         return CHUNKER_OK;
-    }
-
-    /* Phase 1: decide sizes. */
-    int sizes_buf[CHUNKER_MAX_SIZE + 1];
-    int n = 0;
-    int residual = 0;
-
-    if (algorithm == 0) {
-        /* greedy random */
-        n = greedy_random(seqlen, min_sz, max_sz, rng, sizes_buf, &residual);
-        if (residual > 0) {
-            n = apply_residual(sizes_buf, n, residual, residual_mode, rng);
-        }
-    } else if (algorithm == 1) {
-        /* backtrack */
-        int64_t *dp = (int64_t *)malloc((seqlen + 1) * sizeof(int64_t));
-        if (!dp) return CHUNKER_ERR_MEMORY;
-        if (dp_count_ways(seqlen, min_sz, max_sz, dp) < 0) {
-            free(dp); return CHUNKER_ERR_MEMORY;
-        }
-        if (dp[seqlen] > 0) {
-            n = dp_sample(seqlen, min_sz, max_sz, dp, rng, sizes_buf);
-        } else {
-            /* No exact decomposition. Find smallest residual r such that
-             * (seqlen - r) has a decomposition. Apply residual_mode. */
-            int best_r = -1;
-            for (int r = 1; r < min_sz; r++) {
-                if (seqlen - r >= 0 && dp[seqlen - r] > 0) {
-                    best_r = r; break;
-                }
-            }
-            if (best_r < 0) {
-                /* Truly impossible (shouldn't happen for seqlen >= min_sz). */
-                free(dp);
-                n = greedy_random(seqlen, min_sz, max_sz, rng, sizes_buf, &residual);
-                if (residual > 0) {
-                    n = apply_residual(sizes_buf, n, residual, residual_mode, rng);
-                }
-            } else {
-                n = dp_sample(seqlen - best_r, min_sz, max_sz, dp, rng, sizes_buf);
-                n = apply_residual(sizes_buf, n, best_r, residual_mode, rng);
-            }
-        }
-        free(dp);
-    } else {
-        return CHUNKER_ERR_BAD_ALG;
     }
 
     /* Phase 2: slice, optionally RC, shuffle, concatenate. */

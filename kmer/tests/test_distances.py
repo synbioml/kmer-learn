@@ -1,5 +1,7 @@
 """Tests for the kmer.distance module."""
 
+import warnings
+
 import pytest
 import numpy as np
 from scipy.spatial.distance import squareform
@@ -167,6 +169,7 @@ class TestNeedlemanWunsch:
 
     def test_as_distance(self):
         nw = NeedlemanWunsch(match=1, mismatch=-1, gap=-1, as_distance=True)
+        assert nw.is_distance is True
         # Max score = 4 * 1 = 4. Actual = 4. Distance = 0.
         assert nw("ACGT", "ACGT") == 0.0
         # Actual score = 2 (3 matches - 1 gap). Distance = 4 - 2 = 2.
@@ -203,6 +206,9 @@ class TestSmithWaterman:
 
     def test_is_similarity(self):
         assert SmithWaterman().is_distance is False
+
+    def test_as_distance_sets_metadata(self):
+        assert SmithWaterman(as_distance=True).is_distance is True
 
 
 # ======================================================================
@@ -283,10 +289,19 @@ class TestDistanceKernel:
         # Should be all 1s on the diagonal.
         assert np.allclose(np.diag(K), 1.0)
 
+    @pytest.mark.parametrize("alignment_type", [NeedlemanWunsch, SmithWaterman])
+    def test_similarity_input_warns(self, alignment_type):
+        """Raw alignment scores warn because they are similarities."""
+        alignment = alignment_type(match=1, mismatch=-1, gap=-1)
+        with pytest.warns(UserWarning, match="DistanceKernel expects a distance"):
+            DistanceKernel(alignment, transform="rbf", gamma=0.1)
+
     def test_with_nw_as_distance(self):
-        """NW with as_distance=True can be wrapped in a kernel."""
+        """NW with as_distance=True can be wrapped without a warning."""
         nw = NeedlemanWunsch(match=1, mismatch=-1, gap=-1, as_distance=True)
-        kern = DistanceKernel(nw, transform="rbf", gamma=0.1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)
+            kern = DistanceKernel(nw, transform="rbf", gamma=0.1)
         K = kern.kernel_matrix(["ACGT", "ACGTA", "TTTT"])
         assert K.shape == (3, 3)
         assert np.allclose(np.diag(K), 1.0)  # d=0 → exp(0) = 1

@@ -31,11 +31,11 @@ def test_shuffler_perturb():
 
 
 def test_shuffler_perturb_many():
-    """KmerShuffler.perturb_many matches shuffle_many."""
-    sh1 = KmerShuffler(k=2, seed=42)
-    sh2 = KmerShuffler(k=2, seed=42)
+    """KmerShuffler.perturb_many matches repeated shuffle calls."""
+    batch = KmerShuffler(k=2, seed=42)
+    serial = KmerShuffler(k=2, seed=42)
     seqs = ["ACGTACGT", "TTTTAAAA"]
-    assert sh1.perturb_many(seqs) == sh2.shuffle_many(seqs)
+    assert batch.perturb_many(seqs) == [serial.shuffle(seq) for seq in seqs]
 
 
 def test_chunker_perturb():
@@ -48,16 +48,16 @@ def test_chunker_perturb():
 
 
 def test_chunker_perturb_many():
-    """Chunker.perturb_many matches chunk_many."""
-    ch1 = Chunker(min_size=2, max_size=4, seed=42)
-    ch2 = Chunker(min_size=2, max_size=4, seed=42)
+    """Chunker.perturb_many matches repeated chunk calls."""
+    batch = Chunker(min_size=2, max_size=4, seed=42)
+    serial = Chunker(min_size=2, max_size=4, seed=42)
     seqs = ["ACGTACGT", "TTTTAAAA"]
-    assert ch1.perturb_many(seqs) == ch2.chunk_many(seqs)
+    assert batch.perturb_many(seqs) == [serial.chunk(seq) for seq in seqs]
 
 
 def test_custom_background_model():
-    """User-defined BaseBackgroundModel subclass works with DifferentialKmerScorer."""
-    from kmer.models import DifferentialKmerScorer
+    """User-defined BaseBackgroundModel subclass works with KmerMultinomialNB."""
+    from kmer.models import KmerMultinomialNB
     from kmer.encoders import SpectrumEncoder
 
     class ReverseBackground(BaseBackgroundModel):
@@ -65,7 +65,7 @@ def test_custom_background_model():
         def perturb(self, seq):
             return seq[::-1]
 
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=ReverseBackground(),
     )
@@ -76,10 +76,10 @@ def test_custom_background_model():
 
 def test_callable_background_still_works():
     """Plain callables (not BaseBackgroundModel) still work as backgrounds."""
-    from kmer.models import DifferentialKmerScorer
+    from kmer.models import KmerMultinomialNB
     from kmer.encoders import SpectrumEncoder
 
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=lambda s: s[::-1],  # plain callable
     )

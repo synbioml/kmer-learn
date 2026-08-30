@@ -54,7 +54,7 @@ Examples
 
 from __future__ import annotations
 
-from ._base import BaseBackgroundModel
+from ._base import BaseBackgroundModel, _validate_n_jobs
 from ._native._chunker import Chunker as _Chunker
 
 
@@ -79,9 +79,10 @@ class Chunker(_Chunker, BaseBackgroundModel):
     Notes
     -----
     Implements :class:`BaseBackgroundModel`. The C extension provides
-    ``chunk(seq)`` and ``chunk_many(seqs)``; this class exposes
-    ``perturb`` / ``perturb_many`` (the BaseBackgroundModel interface)
-    which delegate to the C methods.
+    ``slice_chunks(seq)``, ``chunk(seq)``, and a private parallel batch engine.
+    Slicing samples boundaries and optional strand flips but leaves chunk order
+    intact. Public batch perturbation is exposed only through
+    ``perturb_many(seqs, n_jobs=1)``.
 
     See Also
     --------
@@ -89,10 +90,22 @@ class Chunker(_Chunker, BaseBackgroundModel):
     kmer.background.BaseBackgroundModel : abstract interface.
     """
 
-    # The C extension implements chunk() and chunk_many().
-    # perturb / perturb_many are the BaseBackgroundModel interface.
+    # The C extension implements slicing, chunking, and a native batch engine.
+    # The batch slicing helper is intentionally serial so each item advances
+    # the same RNG stream as repeated slice_chunks() calls.
+    def slice_chunks_many(self, seqs, n_jobs=1):
+        """Independently sample ordered chunks for every input sequence."""
+        if isinstance(n_jobs, bool) or not isinstance(n_jobs, int):
+            raise TypeError("n_jobs must be an integer")
+        if n_jobs < 1:
+            raise ValueError("n_jobs must be at least 1")
+        return [self.slice_chunks(seq) for seq in seqs]
+
     def perturb(self, seq):
         return self.chunk(seq)
 
-    def perturb_many(self, seqs):
-        return self.chunk_many(seqs)
+    def perturb_many(self, seqs, n_jobs=1):
+        return self._perturb_many_native(
+            seqs,
+            n_jobs=_validate_n_jobs(n_jobs),
+        )

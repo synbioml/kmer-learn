@@ -6,17 +6,18 @@ Provides:
   Eulerian paths in the De Bruijn graph.
 - :class:`Chunker` — splits a sequence into chunks of a given size range,
   shuffles them, and concatenates back.
-- :class:`LocalShuffler` — approximately samples local permutations while
-  strictly bounding each item's positional displacement.
-- :class:`LocalChunker` — applies the same bounded permutation to collections
-  of pre-existing chunks without changing chunk contents.
+- :class:`LocalShuffler` — samples local permutations of strings, arrays, or
+  Python collections while strictly bounding item displacement.
+- :class:`LocalChunker` — composes injected ``Chunker`` and ``LocalShuffler``
+  objects to sample and locally reorder variable-size sequence chunks.
 
 All background models implement :class:`BaseBackgroundModel`, which
 exposes ``perturb(seq)`` and ``perturb_many(seqs)``.
 
 The permutation engines are C-backed and use Philox4×32-10 RNG streams for
-seeded reproducibility. ``LocalChunker`` composes the native ``LocalShuffler``
-engine without duplicating it.
+seeded reproducibility. Batch items receive independent draws from advancing
+streams. ``LocalChunker`` composes the existing chunking and local-shuffling
+APIs without duplicating either algorithm.
 """
 
 from ._base import BaseBackgroundModel

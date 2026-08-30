@@ -6,11 +6,11 @@ Use the package guide for conceptual explanations and worked examples.
 ```{toctree}
 :maxdepth: 1
 
-utils
-encoders
 distance
+encoders
 kernels
-models
 background
+models
 ann
+utils
 ```

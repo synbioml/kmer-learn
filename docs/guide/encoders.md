@@ -16,6 +16,15 @@ matrices. Rows represent sequences; columns represent exact, gappy, or
 mismatch-tolerant k-mer features. The result can be passed directly to
 scikit-learn estimators and sparse-matrix tools.
 
+<!-- Illustration placeholder; replace with a user-supplied asset later.
+```{image} ../assets/guide/encoders.svg
+:alt: A four-base k-mer branches to one exact feature with value plus one, three gapped k-mer patterns, and three full mismatch-neighbor k-mers.
+:width: 560px
+:align: center
+:class: guide-illustration
+```
+-->
+
 ## Learning goals
 
 By the end of this guide, you will be able to:
@@ -177,7 +186,7 @@ This combinatorial growth is the main cost of mismatch encoding.
 
 - Use encoded matrices with {class}`kmer.models.LinearSVM` for supervised
   classification.
-- Use an encoder with {class}`kmer.models.DifferentialKmerScorer` to rank
+- Use an encoder with {class}`kmer.models.KmerMultinomialNB` to rank
   enriched k-mers.
 - Compare feature-based methods with {class}`kmer.kernels.GKMKernel` when a
   kernel representation better matches the task.

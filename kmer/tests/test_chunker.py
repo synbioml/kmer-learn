@@ -9,7 +9,7 @@ Tests:
 - flip_strand error on non-IUPAC
 - flip_strand RCs chunks
 - bytes input
-- chunk_many reproducibility across n_jobs
+- perturb_many reproducibility across n_jobs
 """
 
 import pytest
@@ -225,25 +225,21 @@ def test_bytes_input():
 # Batch operations
 # ======================================================================
 
-def test_chunk_many_matches_serial():
-    """chunk_many should produce the same output as repeated chunk calls."""
+def test_perturb_many_matches_serial():
+    """perturb_many should match repeated chunk calls."""
     seqs = [
         "ACGTACGTACGT",
         "TTTTAAAAGGGGCCCC",
         "ACGTACGTAAAACCCCGGGG",
     ]
     ch_serial = Chunker(min_size=2, max_size=4, seed=42)
-    serial = [ch_serial.chunk(s) for s in seqs]
+    serial = [ch_serial.chunk(sequence) for sequence in seqs]
     ch_batch = Chunker(min_size=2, max_size=4, seed=42)
-    batch = ch_batch.chunk_many(seqs)
-    assert serial == batch
+    assert ch_batch.perturb_many(seqs) == serial
 
 
-def test_chunk_many_reproducible_across_n_jobs():
-    """chunk_many with n_jobs>1 must produce identical output regardless
-    of the specific n_jobs value (as long as n_jobs > 1). Single-threaded
-    mode (n_jobs=1) uses the master RNG directly, so it produces a
-    different stream from parallel mode."""
+def test_perturb_many_reproducible_across_n_jobs():
+    """Parallel perturb_many output is independent of the worker count."""
     seqs = [
         "ACGTACGTACGT",
         "TTTTAAAAGGGGCCCC",
@@ -251,19 +247,20 @@ def test_chunk_many_reproducible_across_n_jobs():
         "GGGGCCCCAAAATTTT",
         "ACGTACGTACGTACGT",
     ]
-    # n_jobs=2 vs n_jobs=4 should match (both use derived per-task keys).
-    result_2 = Chunker(min_size=2, max_size=4, seed=42).chunk_many(seqs, n_jobs=2)
-    result_4 = Chunker(min_size=2, max_size=4, seed=42).chunk_many(seqs, n_jobs=4)
+    result_2 = Chunker(2, 4, seed=42).perturb_many(seqs, n_jobs=2)
+    result_4 = Chunker(2, 4, seed=42).perturb_many(seqs, n_jobs=4)
     assert result_2 == result_4
 
 
-def test_chunk_many_preserves_length():
-    """Every output of chunk_many must preserve input length."""
+def test_perturb_many_preserves_length():
     seqs = ["ACGTACGTACGT", "TTTTAAAAGGGGCCCC"]
-    ch = Chunker(min_size=2, max_size=4, seed=42)
-    outs = ch.chunk_many(seqs)
-    for s, o in zip(seqs, outs):
-        assert len(o) == len(s)
+    outputs = Chunker(2, 4, seed=42).perturb_many(seqs)
+    for sequence, output in zip(seqs, outputs):
+        assert len(output) == len(sequence)
+
+
+def test_chunk_many_is_not_public():
+    assert not hasattr(Chunker(2, 4, seed=42), "chunk_many")
 
 
 # ======================================================================
@@ -294,3 +291,55 @@ def test_invalid_residual_raises():
     """Invalid residual_chunk name must raise at construction."""
     with pytest.raises((ValueError, TypeError)):
         Chunker(min_size=2, max_size=4, residual_chunk="invalid", seed=42)
+
+
+# ======================================================================
+# Pre-shuffle chunk slicing
+# ======================================================================
+
+def test_slice_chunks_preserves_order_type_and_content():
+    sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    chunks = Chunker(min_size=2, max_size=5, seed=42).slice_chunks(sequence)
+    assert isinstance(chunks, list)
+    assert all(isinstance(chunk, str) for chunk in chunks)
+    assert "".join(chunks) == sequence
+
+    byte_chunks = Chunker(min_size=2, max_size=5, seed=42).slice_chunks(
+        sequence.encode("ascii")
+    )
+    assert all(isinstance(chunk, bytes) for chunk in byte_chunks)
+    assert b"".join(byte_chunks) == sequence.encode("ascii")
+
+
+def test_slice_chunks_handles_empty_and_short_inputs():
+    chunker = Chunker(min_size=3, max_size=5, seed=42)
+    assert chunker.slice_chunks("") == []
+    assert chunker.slice_chunks("AC") == ["AC"]
+
+
+def test_slice_chunks_applies_optional_reverse_complement():
+    chunks = Chunker(
+        min_size=3,
+        max_size=3,
+        flip_strand=True,
+        flip_strand_prob=1.0,
+        seed=42,
+    ).slice_chunks("ACGGTT")
+    assert chunks == ["CGT", "AAC"]
+
+
+def test_slice_chunks_many_matches_independent_serial_calls():
+    sequences = ["A" * 500] * 8
+    serial_chunker = Chunker(min_size=10, max_size=30, seed=42)
+    expected = [serial_chunker.slice_chunks(seq) for seq in sequences]
+
+    batch_chunker = Chunker(min_size=10, max_size=30, seed=42)
+    observed = batch_chunker.slice_chunks_many(sequences, n_jobs=4)
+    assert observed == expected
+    assert len({tuple(map(len, chunks)) for chunks in observed}) > 1
+
+
+@pytest.mark.parametrize("n_jobs", [0, -1, 1.5, True])
+def test_invalid_slice_chunks_many_n_jobs_rejected(n_jobs):
+    with pytest.raises((TypeError, ValueError), match="n_jobs"):
+        Chunker(2, 4, seed=42).slice_chunks_many(["ACGT"], n_jobs=n_jobs)

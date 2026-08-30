@@ -3,7 +3,7 @@
 A "background model" generates null-model sequences from real ones:
 shuffles, chunk-shuffles, or any other disruption that preserves some
 composition property. Background models are used by
-:class:`kmer.models.DifferentialKmerScorer` and similar estimators
+:class:`kmer.models.KmerMultinomialNB` and similar estimators
 to generate negatives when none are provided.
 
 All background models implement two methods:
@@ -14,9 +14,18 @@ All background models implement two methods:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from numbers import Integral
 from typing import Iterable, Union
 
 SeqLike = Union[str, bytes]
+
+
+def _validate_n_jobs(n_jobs: int) -> int:
+    if isinstance(n_jobs, bool) or not isinstance(n_jobs, Integral):
+        raise TypeError("n_jobs must be an integer")
+    if n_jobs < 1:
+        raise ValueError("n_jobs must be at least 1")
+    return int(n_jobs)
 
 
 class BaseBackgroundModel(ABC):
@@ -44,20 +53,28 @@ class BaseBackgroundModel(ABC):
         """
         ...
 
-    def perturb_many(self, seqs: Iterable[SeqLike]) -> list:
+    def perturb_many(
+        self,
+        seqs: Iterable[SeqLike],
+        n_jobs: int = 1,
+    ) -> list:
         """Perturb many sequences.
 
-        Default implementation loops in Python. Subclasses with a
-        C-backed batch API should override this for performance.
+        Default implementation loops in Python. Subclasses with a native
+        batch engine may override this for performance.
 
         Parameters
         ----------
         seqs : iterable of (str or bytes)
             Input sequences.
+        n_jobs : int, default 1
+            Requested worker count. The default implementation is serial;
+            native implementations may use multiple workers.
 
         Returns
         -------
         list
-            Perturbed sequences, one per input.
+            Independently perturbed sequences, one per input.
         """
+        _validate_n_jobs(n_jobs)
         return [self.perturb(s) for s in seqs]

@@ -5,7 +5,8 @@ Start with the kind of comparison or prediction your analysis needs.
 | Goal | Representation | Typical model or operation |
 |---|---|---|
 | Classify by exact or approximate k-mer content | `SpectrumEncoder`, `GappyEncoder`, or `MismatchEncoder` | `LinearSVM` |
-| Identify enriched sequence patterns | A k-mer encoder | `DifferentialKmerScorer` |
+| Identify enriched sequence patterns | A k-mer encoder | `KmerMultinomialNB` |
+| Predict a continuous sequence-associated value | A k-mer encoder | `KmerLinearRegression` |
 | Compare regulatory sequences with gapped motifs | `GKMKernel` or `WGKMKernel` | `KernelSVM` |
 | Classify using edit or alignment similarity | A class from `kmer.distance` | `KNNClassifier` or `DistanceKernel` |
 | Generate matched negative sequences | `KmerShuffler`, `Chunker`, or their local variants | A downstream classifier or scorer |
@@ -15,7 +16,8 @@ Start with the kind of comparison or prediction your analysis needs.
 ## A useful first path
 
 1. Read {doc}`../guide/encoders` to turn sequences into a sparse feature matrix.
-2. Fit a feature-based model such as {class}`kmer.models.LinearSVM`.
+2. Fit a feature-based model such as {class}`kmer.models.LinearSVM` or
+   {class}`kmer.models.KmerLinearRegression`.
 3. Compare that workflow with a kernel or distance method when exact k-mer
    positions, mismatches, or indels are biologically important.
 

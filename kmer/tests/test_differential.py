@@ -1,9 +1,9 @@
-"""Tests for the DifferentialKmerScorer."""
+"""Tests for the KmerMultinomialNB."""
 
 import pytest
 import numpy as np
 
-from kmer.models import DifferentialKmerScorer
+from kmer.models import KmerMultinomialNB
 from kmer.encoders import SpectrumEncoder
 from kmer.background import KmerShuffler, Chunker
 
@@ -13,7 +13,7 @@ from kmer.background import KmerShuffler, Chunker
 # ======================================================================
 
 def test_construction_with_shuffler_background():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -24,7 +24,7 @@ def test_construction_with_shuffler_background():
 
 
 def test_construction_with_chunker_background():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=Chunker(min_size=2, max_size=4, seed=42),
     )
@@ -32,14 +32,14 @@ def test_construction_with_chunker_background():
 
 
 def test_construction_with_no_background():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
     )
     assert scorer.background is None
 
 
 def test_construction_asymmetric_smoothing():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=KmerShuffler(k=1, seed=42),
         alpha=0.5,
@@ -54,7 +54,7 @@ def test_construction_asymmetric_smoothing():
 # ======================================================================
 
 def test_fit_with_explicit_negatives():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
     )
     positives = ["ACGTACGTACGT", "ACGTACGTACGT", "ACGTACGTACGT"]
@@ -67,7 +67,7 @@ def test_fit_with_explicit_negatives():
 
 
 def test_fit_with_auto_negatives():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -78,7 +78,7 @@ def test_fit_with_auto_negatives():
 
 
 def test_fit_without_background_or_negatives_raises():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
     )
     with pytest.raises(ValueError, match="background"):
@@ -90,7 +90,7 @@ def test_fit_without_background_or_negatives_raises():
 # ======================================================================
 
 def test_decision_function_returns_float_array():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -102,7 +102,7 @@ def test_decision_function_returns_float_array():
 
 
 def test_predict_returns_int_labels():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -113,7 +113,7 @@ def test_predict_returns_int_labels():
 
 
 def test_predict_proba_returns_probabilities():
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=3),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -131,7 +131,7 @@ def test_predict_proba_returns_probabilities():
 def test_enriched_kmers_identified():
     """When positives are ACGT-repeats and negatives are mono-shuffled,
     ACGT-family 4-mers should be enriched."""
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -147,7 +147,7 @@ def test_positive_sequences_score_higher_than_negatives():
     """On average, positives should score higher than negatives."""
     np.random.seed(0)
     positives = ["ACGTACGT" + "ACGT" * np.random.randint(0, 3) for _ in range(30)]
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -169,7 +169,7 @@ def test_rc_invariance_with_canonical_rc():
     """A sequence and its RC should produce the same score when
     featurizer uses canonical_rc=True."""
     from kmer.utils import reverse_complement
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4, canonical_rc=True),
         background=KmerShuffler(k=1, seed=42),
     )
@@ -188,7 +188,7 @@ def test_rc_invariance_with_canonical_rc():
 
 def test_chunker_background_works():
     """The scorer should accept a Chunker as background."""
-    scorer = DifferentialKmerScorer(
+    scorer = KmerMultinomialNB(
         featurizer=SpectrumEncoder(k=4),
         background=Chunker(min_size=2, max_size=4, seed=42),
     )

@@ -91,6 +91,7 @@ class _AlignmentBase(BaseDistance):
         self.mismatch = mismatch
         self.gap = gap
         self.as_distance = as_distance
+        self.is_distance = as_distance
         self._sub_matrix_name = None
         if substitution_matrix is not None:
             if isinstance(substitution_matrix, str):

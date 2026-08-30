@@ -43,7 +43,7 @@ Examples
 
 from __future__ import annotations
 
-from ._base import BaseBackgroundModel
+from ._base import BaseBackgroundModel, _validate_n_jobs
 from ._native._shuffler import KmerShuffler as _KmerShuffler
 
 
@@ -65,9 +65,8 @@ class KmerShuffler(_KmerShuffler, BaseBackgroundModel):
     Notes
     -----
     Implements :class:`BaseBackgroundModel`. The C extension provides
-    ``shuffle(seq)`` and ``shuffle_many(seqs)``; this class exposes
-    ``perturb`` / ``perturb_many`` (the BaseBackgroundModel interface)
-    which delegate to the C methods.
+    ``shuffle(seq)`` and a private parallel batch engine. Public batch
+    perturbation is exposed only through ``perturb_many(seqs, n_jobs=1)``.
 
     The internal De Bruijn graph uses (k-1)-mer nodes (the natural
     representation); the user-facing parameter is ``k`` (the size whose
@@ -83,10 +82,13 @@ class KmerShuffler(_KmerShuffler, BaseBackgroundModel):
     kmer.background.BaseBackgroundModel : abstract interface.
     """
 
-    # The C extension implements shuffle() and shuffle_many().
+    # The C extension implements shuffle() and a private native batch engine.
     # perturb / perturb_many are the BaseBackgroundModel interface.
     def perturb(self, seq):
         return self.shuffle(seq)
 
-    def perturb_many(self, seqs):
-        return self.shuffle_many(seqs)
+    def perturb_many(self, seqs, n_jobs=1):
+        return self._perturb_many_native(
+            seqs,
+            n_jobs=_validate_n_jobs(n_jobs),
+        )

@@ -19,7 +19,7 @@ from typing import TypeAlias
 
 import numpy as np
 
-from ._base import BaseBackgroundModel, SeqLike
+from ._base import BaseBackgroundModel, SeqLike, _validate_n_jobs
 from ._native._local import _LocalShuffler
 
 LimitSpec: TypeAlias = int | str | None
@@ -70,8 +70,10 @@ class LocalShuffler(_LocalShuffler, BaseBackgroundModel):
     If resolved ``L >= H``, the hard fallback runs first and the soft phase is
     effectively disabled.  Both limits may be disabled explicitly.
 
-    Inputs may be ``str``, ``bytes``, or one-dimensional NumPy arrays.  Output
-    type, length, values, and NumPy dtype are preserved.
+    Inputs may be ``str``, ``bytes``, ``list``, ``tuple``, or one-dimensional
+    NumPy arrays. Output type, length, values, object identities, and NumPy
+    dtype are preserved. Batch inputs are sampled independently from the
+    advancing RNG stream; coincidental duplicate permutations remain possible.
     """
 
     def __init__(
@@ -120,7 +122,7 @@ class LocalShuffler(_LocalShuffler, BaseBackgroundModel):
         raw = self._permutation_bytes(int(length), L, H)
         return np.frombuffer(raw, dtype=np.intp).copy()
 
-    def shuffle(self, seq: SeqLike | np.ndarray):
+    def shuffle(self, seq: SeqLike | list | tuple | np.ndarray):
         """Return a bounded shuffle with the same type and length as ``seq``."""
         L, H = self.limits_for(len(seq))
         if isinstance(seq, np.ndarray):
@@ -129,13 +131,31 @@ class LocalShuffler(_LocalShuffler, BaseBackgroundModel):
             raw = self._permutation_bytes(len(seq), L, H)
             indices = np.frombuffer(raw, dtype=np.intp)
             return seq[indices]
+        if isinstance(seq, list):
+            indices = self.permutation(len(seq))
+            return [seq[index] for index in indices]
+        if isinstance(seq, tuple):
+            indices = self.permutation(len(seq))
+            return tuple(seq[index] for index in indices)
         if not isinstance(seq, (str, bytes)):
-            raise TypeError("seq must be str, bytes, or a one-dimensional NumPy array")
+            raise TypeError(
+                "seq must be str, bytes, list, tuple, or a one-dimensional "
+                "NumPy array"
+            )
         return self._shuffle(seq, L, H)
 
-    def perturb(self, seq: SeqLike | np.ndarray):
+    def perturb(self, seq: SeqLike | list | tuple | np.ndarray):
         """Alias for :meth:`shuffle`, implementing ``BaseBackgroundModel``."""
         return self.shuffle(seq)
+
+    def perturb_many(self, seqs, n_jobs: int = 1) -> list:
+        """Independently shuffle every input in ``seqs``.
+
+        Local shuffles currently run serially, so seeded output does not depend
+        on the requested worker count.
+        """
+        _validate_n_jobs(n_jobs)
+        return [self.shuffle(seq) for seq in seqs]
 
     @property
     def last_stats_(self) -> dict[str, int]:

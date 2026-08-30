@@ -2,6 +2,10 @@
 
 A modern Python toolkit for classical sequence machine learning.
 
+[![Documentation Status](https://readthedocs.org/projects/kmer-learn/badge/?version=latest)](https://kmer-learn.readthedocs.io/en/latest/?badge=latest)
+
+**Documentation:** [kmer-learn.readthedocs.io](https://kmer-learn.readthedocs.io/en/latest/)
+
 > **⚠ API stability:** This package is in early development (v0.x). The public API is **not yet stable** — breaking changes may be introduced between minor versions until v1.0. Pin your dependency to an exact version (e.g. `kmer-learn==0.1.0`) if reproducibility matters.
 
 ## Install
@@ -42,16 +46,17 @@ All encoders support `canonical_rc=True` for reverse-complement collapsing.
 - **NeedlemanWunsch**, **SmithWaterman** (parasail backend + Python fallback), with custom substitution matrices (NUC4.4, BLOSUM62, …).
 
 ### Models
-- **DifferentialKmerScorer** — Multinomial Naive Bayes on k-mer features, with auto-generated negatives via Shuffler/Chunker.
+- **KmerMultinomialNB** — Multinomial Naive Bayes on k-mer features, with auto-generated negatives via Shuffler/Chunker.
 - **KernelSVM** — SVM with a precomputed kernel (works with GKMKernel and DistanceKernel).
 - **LinearSVM** — Linear SVM on encoder features.
 - **KNNClassifier** — k-Nearest Neighbors with a sequence distance.
+- **KmerLinearRegression** — ordinary least-squares regression on encoded k-mer features, with optional sparse-safe scaling.
 
 ### Background models and sequence perturbation
 - **KmerShuffler** — k-mer-preserving shuffle via random Eulerian paths in the De Bruijn graph. Three endpoint modes (preserve / free / crop). Philox4×32-10 RNG, reproducible across `n_jobs`.
 - **Chunker** — block-level perturbation: split into chunks of size `[min, max]`, optionally reverse-complement each, shuffle, concatenate. Five residual-handling modes, two algorithms (random / backtrack).
-- **LocalShuffler** — C-backed local permutation with a strict maximum positional displacement. Random collision chains use adaptive soft free-first (`L`) and hard augmenting-path (`H`) limits; supports `str`, `bytes`, and 1D NumPy arrays.
-- **LocalChunker** — locally permutes pre-existing chunks by composing `LocalShuffler`; displacement is measured in chunk positions, and list, tuple, or 1D NumPy outer containers are preserved.
+- **LocalShuffler** — C-backed local permutation with a strict maximum positional displacement. Random collision chains use adaptive soft free-first (`L`) and hard augmenting-path (`H`) limits; supports `str`, `bytes`, lists, tuples, and 1D NumPy arrays.
+- **LocalChunker** — composes injected `Chunker` and `LocalShuffler` objects to sample and locally reorder variable-size chunks from raw sequences; displacement is measured in chunk positions.
 - **BaseBackgroundModel** — ABC for custom background models.
 
 ### Utilities
@@ -71,11 +76,11 @@ preds = clf.predict(test_seqs)
 
 ```python
 from kmer.encoders import SpectrumEncoder
-from kmer.models import DifferentialKmerScorer
+from kmer.models import KmerMultinomialNB
 from kmer.background import KmerShuffler
 
 # Differential k-mer scoring with dinucleotide-shuffled background
-scorer = DifferentialKmerScorer(
+scorer = KmerMultinomialNB(
     featurizer=SpectrumEncoder(k=6, canonical_rc=True),
     background=KmerShuffler(k=2, seed=42),
 )
@@ -106,7 +111,7 @@ The `examples/` directory (top-level, next to `kmer/`) contains a series of cros
 | 06 | [`06_weighted_kernel.ipynb`](examples/06_weighted_kernel.ipynb) | WGKMKernel positional weighting (centered motif) |
 | 07 | [`07_transform_and_comparison.ipynb`](examples/07_transform_and_comparison.ipynb) | All 3 schemes × 6 transforms, GKM vs WGKM |
 | 08 | [`08_windowed_3d_tensors.ipynb`](examples/08_windowed_3d_tensors.ipynb) | WindowedGKMKernel 3D output (line plot) |
-| 09 | [`09_spectrum_encoder_and_differential.ipynb`](examples/09_spectrum_encoder_and_differential.ipynb) | SpectrumEncoder + DifferentialKmerScorer |
+| 09 | [`09_spectrum_encoder_and_differential.ipynb`](examples/09_spectrum_encoder_and_differential.ipynb) | SpectrumEncoder + KmerMultinomialNB |
 | 10 | [`10_gappy_encoder.ipynb`](examples/10_gappy_encoder.ipynb) | GappyEncoder with masks, gap ranges, RC collapse |
 | 11 | [`11_mismatch_encoder.ipynb`](examples/11_mismatch_encoder.ipynb) | MismatchEncoder and comparison to spectrum |
 | 12 | [`12_shuffler_and_chunker.ipynb`](examples/12_shuffler_and_chunker.ipynb) | KmerShuffler + Chunker for negative-set generation |

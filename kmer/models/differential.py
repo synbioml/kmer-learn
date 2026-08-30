@@ -1,13 +1,12 @@
-"""kmer.models.differential — differential k-mer log-odds scorer.
+"""K-mer Multinomial Naive Bayes classification and feature scoring.
 
-A thin wrapper around sklearn's MultinomialNB that adds:
+The classifier adds sequence-specific conveniences to binary Multinomial
+Naive Bayes:
   1. Auto-generation of negatives via a Shuffler or Chunker background.
   2. Convenience attribute ``kmer_scores_`` (per-k-mer log-odds).
-  3. Sklearn-compatible ``decision_function`` returning log-odds sum.
+  3. Sklearn-compatible ``decision_function`` returning log-odds sums.
 
-This is statistically Multinomial Naive Bayes with Dirichlet(α)
-smoothing and uniform class prior. See sklearn.naive_bayes.MultinomialNB
-for the underlying implementation.
+It uses Dirichlet(α) smoothing and uniform class priors.
 """
 
 from __future__ import annotations
@@ -17,8 +16,6 @@ from typing import Optional, Union, Callable
 import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.naive_bayes import MultinomialNB
-
 from ..background import BaseBackgroundModel, KmerShuffler, Chunker
 from ..encoders import SpectrumEncoder
 
@@ -28,8 +25,8 @@ from ..encoders import SpectrumEncoder
 Background = Union[BaseBackgroundModel, Callable[[Union[str, bytes]], Union[str, bytes]]]
 
 
-class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
-    """Differential k-mer log-odds scorer (Multinomial Naive Bayes).
+class KmerMultinomialNB(BaseEstimator, ClassifierMixin):
+    """Binary Multinomial Naive Bayes classifier for k-mer counts.
 
     For each k-mer, computes ``log(p_+,u / p_-,u)`` where ``p_c,u`` is
     the frequency of k-mer ``u`` in class ``c`` with Laplace smoothing.
@@ -67,10 +64,10 @@ class DifferentialKmerScorer(BaseEstimator, ClassifierMixin):
 
     Examples
     --------
-    >>> from kmer.models import DifferentialKmerScorer
+    >>> from kmer.models import KmerMultinomialNB
     >>> from kmer.encoders import SpectrumEncoder
     >>> from kmer.background import KmerShuffler
-    >>> scorer = DifferentialKmerScorer(
+    >>> scorer = KmerMultinomialNB(
     ...     featurizer=SpectrumEncoder(k=4),
     ...     background=KmerShuffler(k=2, seed=42),
     ... )

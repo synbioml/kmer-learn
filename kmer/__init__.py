@@ -16,4 +16,4 @@ Quick start
 >>> clf = KernelSVM(GKMKernel(L=10, k=6, d=3), C=1.0)
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.4"

@@ -9,8 +9,8 @@ Tests:
 - getstate/setstate round-trip
 - non-ACGT characters raise ValueError
 - bytes and str inputs both work
-- shuffle_many matches serial shuffle calls
-- shuffle_many is reproducible across n_jobs
+- perturb_many matches serial shuffle calls
+- perturb_many is reproducible across n_jobs
 """
 
 import pytest
@@ -225,8 +225,8 @@ def test_invalid_endpoints_raises():
 # Batch operations
 # ======================================================================
 
-def test_shuffle_many_matches_serial():
-    """shuffle_many should produce the same output as repeated shuffle calls."""
+def test_perturb_many_matches_serial():
+    """perturb_many should match repeated shuffle calls."""
     seqs = [
         "AAACCCGGGTTT",
         "ACGTACGTACGT",
@@ -237,15 +237,11 @@ def test_shuffle_many_matches_serial():
     sh_serial = KmerShuffler(k=3, seed=42)
     serial = [sh_serial.shuffle(s) for s in seqs]
     sh_batch = KmerShuffler(k=3, seed=42)
-    batch = sh_batch.shuffle_many(seqs)
-    assert serial == batch
+    assert sh_batch.perturb_many(seqs) == serial
 
 
-def test_shuffle_many_reproducible_across_n_jobs():
-    """shuffle_many with n_jobs>1 must produce identical output regardless
-    of the specific n_jobs value (as long as n_jobs > 1). Single-threaded
-    mode (n_jobs=1) uses the master RNG directly, so it produces a
-    different stream from parallel mode."""
+def test_perturb_many_reproducible_across_n_jobs():
+    """Parallel perturb_many output is independent of the worker count."""
     seqs = [
         "AAACCCGGGTTT",
         "ACGTACGTACGT",
@@ -254,28 +250,28 @@ def test_shuffle_many_reproducible_across_n_jobs():
         "GCGCGCGCGCGC",
         "ATGCATGCATGC",
     ]
-    # n_jobs=2 vs n_jobs=4 should match (both use derived per-task keys).
-    result_2 = KmerShuffler(k=3, seed=42).shuffle_many(seqs, n_jobs=2)
-    result_4 = KmerShuffler(k=3, seed=42).shuffle_many(seqs, n_jobs=4)
+    result_2 = KmerShuffler(k=3, seed=42).perturb_many(seqs, n_jobs=2)
+    result_4 = KmerShuffler(k=3, seed=42).perturb_many(seqs, n_jobs=4)
     assert result_2 == result_4
 
 
-def test_shuffle_many_preserves_kmer_composition():
-    """Every output of shuffle_many must preserve k-mer composition."""
+def test_perturb_many_preserves_kmer_composition():
+    """Every batch output must preserve k-mer composition."""
     seqs = [
         "AAACCCGGGTTT",
         "ACGTACGTACGT",
         "TTTTGGGGCCCC",
     ]
-    sh = KmerShuffler(k=3, seed=42)
-    outs = sh.shuffle_many(seqs)
-    for s, o in zip(seqs, outs):
-        assert kmer_counts(s, 3) == kmer_counts(o, 3)
+    outs = KmerShuffler(k=3, seed=42).perturb_many(seqs)
+    for sequence, output in zip(seqs, outs):
+        assert kmer_counts(sequence, 3) == kmer_counts(output, 3)
 
 
-def test_shuffle_many_bytes_input():
-    """shuffle_many accepts bytes inputs."""
+def test_perturb_many_accepts_bytes_inputs():
     seqs = [b"ACGTACGT", b"TTTTAAAA"]
-    sh = KmerShuffler(k=2, seed=42)
-    outs = sh.shuffle_many(seqs)
-    assert all(isinstance(o, bytes) for o in outs)
+    outputs = KmerShuffler(k=2, seed=42).perturb_many(seqs)
+    assert all(isinstance(output, bytes) for output in outputs)
+
+
+def test_shuffle_many_is_not_public():
+    assert not hasattr(KmerShuffler(k=2, seed=42), "shuffle_many")
