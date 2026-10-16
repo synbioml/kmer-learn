@@ -38,8 +38,9 @@ pip install rapidfuzz parasail   # 10-100x faster edit distances and alignments
 - **SpectrumEncoder** — plain k-mer counts via rolling hash (k ≤ 12).
 - **GappyEncoder** — gappy k-mer counts with explicit masks (`"*--*"`) or gap ranges (`L=6, g_min=2, g_max=3`).
 - **MismatchEncoder** — mismatch-tolerant k-mer counts (Leslie, Eskin, Noble 2004).
+- **SequenceStatsEncoder** — dense aggregation of configured `kmer.stats` callables.
 
-All encoders support `canonical_rc=True` for reverse-complement collapsing.
+The three k-mer count encoders support `canonical_rc=True` for reverse-complement collapsing.
 
 ### Distances
 - **Hamming**, **Levenshtein** (rapidfuzz backend + Python fallback).
@@ -58,6 +59,10 @@ All encoders support `canonical_rc=True` for reverse-complement collapsing.
 - **LocalShuffler** — C-backed local permutation with a strict maximum positional displacement. Random collision chains use adaptive soft free-first (`L`) and hard augmenting-path (`H`) limits; supports `str`, `bytes`, lists, tuples, and 1D NumPy arrays.
 - **LocalChunker** — composes injected `Chunker` and `LocalShuffler` objects to sample and locally reorder variable-size chunks from raw sequences; displacement is measured in chunk positions.
 - **BaseBackgroundModel** — ABC for custom background models.
+
+### Sequence statistics
+- `kmer.stats` — monomer content and skew, rolling k-mer entropy/Gini/duplicate summaries, native distinct-substring counts, homopolymer and Lempel–Ziv statistics, and directional Markov diagnostics.
+- Windowed statistics share mean, standard deviation, median, extrema, quantile, and threshold-count aggregation.
 
 ### Utilities
 - `kmer.utils` — bit-packed k-mer helpers (`kmer_to_code`, `code_to_kmer`, `reverse_complement`, `canonical_code`).

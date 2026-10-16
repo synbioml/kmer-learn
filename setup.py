@@ -8,6 +8,7 @@ Compiles the following extensions:
   - kmer.encoders._native._spectrum     (rolling-hash k-mer counter)
   - kmer.encoders._native._gappy        (masked-hash gappy k-mer counter)
   - kmer.encoders._native._mismatch     (mismatch k-mer counter)
+  - kmer.stats._native._complexity       (suffix-automaton substring counter)
 
 All paths must be relative to this file (setuptools requirement).
 The root kmer/ directory is added to every extension's include path
@@ -126,6 +127,12 @@ mismatch_ext = _ext(
     extra_link_args=_OPENMP_LINK_ARGS,
 )
 
+# --- sequence statistics: suffix-automaton substring counter ----------
+complexity_ext = _ext(
+    name="kmer.stats._native._complexity",
+    sources=["kmer/stats/_native/_complexity_pylib.c"],
+    include_dirs=["kmer/stats/_native"],
+)
 
 
 # --- ann: HNSW index (C++ with vendored hnswlib) ----------------------
@@ -141,5 +148,6 @@ ann_ext = Extension(
 
 setup(
     ext_modules=[gkm_ext, shuffler_ext, chunker_ext, local_ext,
-                 spectrum_ext, gappy_ext, mismatch_ext, ann_ext],
+                 spectrum_ext, gappy_ext, mismatch_ext, complexity_ext,
+                 ann_ext],
 )

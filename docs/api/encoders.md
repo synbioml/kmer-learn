@@ -28,3 +28,12 @@
 .. autoclass:: MismatchEncoder
    :members:
 ```
+
+## Sequence-statistics encoder
+
+```{eval-rst}
+.. currentmodule:: kmer.encoders
+
+.. autoclass:: SequenceStatsEncoder
+   :members:
+```
