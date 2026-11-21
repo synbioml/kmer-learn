@@ -1,11 +1,15 @@
-"""Generate all 13 example notebooks for kmer-learn.
+"""Generate the example notebooks for kmer-learn.
 
 Each notebook:
 - Has a vignette index at the top (cross-links to all others)
 - Is executed in-place (outputs preserved)
 - Uses the new numbering after moving distance_kernel to position 02
+
+Use ``--only N [N ...]`` to regenerate selected vignettes without
+touching the others.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -29,6 +33,7 @@ VIGNETTES = [
     (10, "gappy_encoder",                    "Gappy encoder"),
     (11, "mismatch_encoder",                 "Mismatch encoder"),
     (12, "shuffler_and_chunker",             "Shuffler & chunker"),
+    (13, "sequence_stats",                   "Sequence statistics"),
 ]
 
 
@@ -681,11 +686,70 @@ print(f'n_jobs=1 == n_jobs=4: {r1 == r2}')"""),
 
 
 
+def nb_13():
+    idx = vignette_index(13)
+    cells = [
+        ("md", f"# 13 — Sequence Statistics\n\n{idx}\n\n`kmer.stats` summarizes individual sequences: base composition, k-mer content, repetitiveness, and predictability. Every callable accepts a sequence or list of sequences and returns one row per sequence — directly usable as feature matrices for the models in kmer-learn."),
+        ("code", """from kmer.stats import (
+    monomer_content, monomer_skew, kmer_content,
+    windowed_monomer_content, homopolymer_stats,
+    tandem_repeat_abundance, substring_complexity,
+    lempel_ziv_complexity, markov_entropy, markov_transition_stats,
+)
+
+seqs = [
+    \"GCGCGCATATATGCGC\",   # alternating repeats
+    \"AAAACCCCGGGGTTTT\",   # blocky
+    \"ACGTTGCAATGCCGT\",   # random-like
+]"""),
+        ("md", "## Composition and skew"),
+        ("code", """print(\"GC fraction:\", monomer_content(seqs, letters=\"GC\").ravel())
+print(\"GC skew   :\", monomer_skew(seqs, letters=\"GC\").ravel())"""),
+        ("md", "## K-mer content: entropy, Gini, duplicates"),
+        ("code", """for stat in (\"entropy\", \"gini\", \"duplicates\"):
+    print(f\"{stat:10s}:\", kmer_content(seqs, L=3, stat=stat).ravel())"""),
+        ("md", "## Windowed summaries\n\nCompute a statistic in windows along the sequence, then aggregate the profile (mean/std/median/extrema/quantiles/threshold counts)."),
+        ("code", """region = \"TTTTTTTTTT\" + \"GCGCGCGCGC\" * 6 + \"AAAAAACCCC\"
+summary = windowed_monomer_content(
+    [region], window_size=10, step=5, agg=(\"mean\", \"std\", \"max\"),
+)
+print(\"rows = sequences, columns = aggregations:\")
+print(summary)"""),
+        ("md", "## Repetition and complexity"),
+        ("code", """low = \"AAAAACCCCCGGGGGTTTTTAAAAACCCCC\"
+high = \"ACGTTGCAATGCCGTTACGATCGATCGTAC\"
+
+print(\"homopolymer (count, max):\", homopolymer_stats([low, high], L_min=4, stat=(\"count\", \"max\")))
+print(\"tandem repeats            :\", tandem_repeat_abundance(
+    [\"ACACACACGCGCGCGT\", \"ACGTTGCAACGTTGCA\"],
+    window_size=8, step=4, agg=\"count\").ravel())
+print(\"distinct substrings 1..8 :\", substring_complexity([low, high], L_min=1, L_max=8).ravel())
+print(\"Lempel-Ziv (normalized)  :\", lempel_ziv_complexity([low, high]).ravel())"""),
+        ("md", "## Markov diagnostics\n\nConditional entropy up to order 3, plus transition summaries. A deterministic sequence drops to zero entropy at order 1. These are per-sequence descriptors — not a generative background model; matched nulls come from `kmer.background`."),
+        ("code", """periodic = \"ACACACACACACACAC\"
+random_like = \"ACGTTGCAATGCCGTT\"
+
+print(\"order 0:\", markov_entropy([periodic, random_like], order=0).ravel())
+print(\"order 1:\", markov_entropy([periodic, random_like], order=1).ravel())
+print(\"order 2:\", markov_entropy([periodic, random_like], order=2).ravel())
+
+summary = markov_transition_stats([periodic, random_like], order=1)
+print(\"transition summary:\", summary.shape)"""),
+    ]
+    return make_notebook(cells)
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--only", nargs="+", type=int, default=None,
+                        help="regenerate only these vignette numbers")
+    args = parser.parse_args()
+
     os.makedirs(EXAMPLES_DIR, exist_ok=True)
-    for f in os.listdir(EXAMPLES_DIR):
-        if f.endswith(".ipynb"):
-            os.remove(os.path.join(EXAMPLES_DIR, f))
+    if args.only is None:
+        for f in os.listdir(EXAMPLES_DIR):
+            if f.endswith(".ipynb"):
+                os.remove(os.path.join(EXAMPLES_DIR, f))
 
     notebooks = [
         (1,  "basic_kernel_matrix",              nb_01),
@@ -700,8 +764,11 @@ def main():
         (10, "gappy_encoder",                    nb_10),
         (11, "mismatch_encoder",                 nb_11),
         (12, "shuffler_and_chunker",             nb_12),
+        (13, "sequence_stats",                   nb_13),
     ]
     for num, stem, builder in notebooks:
+        if args.only is not None and num not in args.only:
+            continue
         path = os.path.join(EXAMPLES_DIR, f"{num:02d}_{stem}.ipynb")
         print(f"Building {path}...")
         nb = builder()

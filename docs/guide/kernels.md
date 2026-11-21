@@ -192,6 +192,5 @@ Current limitations matter when choosing a weighted variant:
 ## Next steps
 
 - Fit a precomputed-kernel classifier in {doc}`models`.
-- Use {doc}`ann` for approximate search with GKM-derived distance.
 - Consult {doc}`../api/kernels` for all weighting, offset, padding, and
   transform parameters.

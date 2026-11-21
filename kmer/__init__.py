@@ -6,6 +6,10 @@ Subpackages
 - :mod:`kmer.encoders` — k-mer feature extractors (spectrum, gappy, mismatch).
 - :mod:`kmer.distance` — pairwise distance metrics and distance-based kernels.
 - :mod:`kmer.models`   — sklearn-compatible estimators (SVM, NB, KNN).
+- :mod:`kmer.stats`    — per-sequence composition, complexity, and Markov
+  statistics.
+- :mod:`kmer.enrichment` — k-mer association scoring (MI, regression,
+  ranked-list, and two-set enrichment).
 - :mod:`kmer.background`  — sequence disruption (shuffler, chunker).
 - :mod:`kmer.utils`    — bit-packed k-mer helpers.
 
