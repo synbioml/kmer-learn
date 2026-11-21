@@ -1,0 +1,433 @@
+{
+ "seed": 20071005,
+ "n_seqs": 120,
+ "seq_len": 150,
+ "motifs": {
+  "ACGTTGCA": {
+   "cluster": 0,
+   "fraction": 0.7,
+   "carriers": [
+    {
+     "seq": "S040",
+     "strand": "+",
+     "position": 139
+    },
+    {
+     "seq": "S000",
+     "strand": "+",
+     "position": 135
+    },
+    {
+     "seq": "S024",
+     "strand": "-",
+     "position": 1
+    },
+    {
+     "seq": "S014",
+     "strand": "+",
+     "position": 15
+    },
+    {
+     "seq": "S030",
+     "strand": "+",
+     "position": 95
+    },
+    {
+     "seq": "S048",
+     "strand": "-",
+     "position": 115
+    },
+    {
+     "seq": "S028",
+     "strand": "-",
+     "position": 131
+    },
+    {
+     "seq": "S033",
+     "strand": "-",
+     "position": 10
+    },
+    {
+     "seq": "S051",
+     "strand": "-",
+     "position": 81
+    },
+    {
+     "seq": "S011",
+     "strand": "+",
+     "position": 14
+    },
+    {
+     "seq": "S053",
+     "strand": "+",
+     "position": 22
+    },
+    {
+     "seq": "S020",
+     "strand": "-",
+     "position": 70
+    },
+    {
+     "seq": "S046",
+     "strand": "-",
+     "position": 110
+    },
+    {
+     "seq": "S044",
+     "strand": "+",
+     "position": 97
+    },
+    {
+     "seq": "S013",
+     "strand": "-",
+     "position": 72
+    },
+    {
+     "seq": "S039",
+     "strand": "-",
+     "position": 3
+    },
+    {
+     "seq": "S008",
+     "strand": "-",
+     "position": 54
+    },
+    {
+     "seq": "S018",
+     "strand": "-",
+     "position": 53
+    },
+    {
+     "seq": "S004",
+     "strand": "-",
+     "position": 64
+    },
+    {
+     "seq": "S009",
+     "strand": "-",
+     "position": 50
+    },
+    {
+     "seq": "S025",
+     "strand": "+",
+     "position": 119
+    },
+    {
+     "seq": "S021",
+     "strand": "+",
+     "position": 61
+    },
+    {
+     "seq": "S057",
+     "strand": "+",
+     "position": 141
+    },
+    {
+     "seq": "S006",
+     "strand": "-",
+     "position": 16
+    },
+    {
+     "seq": "S010",
+     "strand": "+",
+     "position": 138
+    },
+    {
+     "seq": "S050",
+     "strand": "+",
+     "position": 47
+    },
+    {
+     "seq": "S058",
+     "strand": "-",
+     "position": 68
+    },
+    {
+     "seq": "S017",
+     "strand": "-",
+     "position": 88
+    },
+    {
+     "seq": "S019",
+     "strand": "+",
+     "position": 53
+    },
+    {
+     "seq": "S043",
+     "strand": "+",
+     "position": 75
+    },
+    {
+     "seq": "S047",
+     "strand": "-",
+     "position": 31
+    },
+    {
+     "seq": "S037",
+     "strand": "-",
+     "position": 95
+    },
+    {
+     "seq": "S055",
+     "strand": "-",
+     "position": 18
+    },
+    {
+     "seq": "S026",
+     "strand": "-",
+     "position": 91
+    },
+    {
+     "seq": "S035",
+     "strand": "-",
+     "position": 113
+    },
+    {
+     "seq": "S036",
+     "strand": "-",
+     "position": 105
+    },
+    {
+     "seq": "S002",
+     "strand": "+",
+     "position": 84
+    },
+    {
+     "seq": "S032",
+     "strand": "+",
+     "position": 23
+    },
+    {
+     "seq": "S003",
+     "strand": "-",
+     "position": 39
+    },
+    {
+     "seq": "S015",
+     "strand": "+",
+     "position": 52
+    },
+    {
+     "seq": "S041",
+     "strand": "-",
+     "position": 125
+    },
+    {
+     "seq": "S042",
+     "strand": "-",
+     "position": 79
+    }
+   ]
+  },
+  "TTTGGCCA": {
+   "cluster": 1,
+   "fraction": 0.65,
+   "carriers": [
+    {
+     "seq": "S092",
+     "strand": "+",
+     "position": 139
+    },
+    {
+     "seq": "S083",
+     "strand": "+",
+     "position": 8
+    },
+    {
+     "seq": "S069",
+     "strand": "-",
+     "position": 48
+    },
+    {
+     "seq": "S062",
+     "strand": "-",
+     "position": 87
+    },
+    {
+     "seq": "S099",
+     "strand": "+",
+     "position": 35
+    },
+    {
+     "seq": "S111",
+     "strand": "-",
+     "position": 77
+    },
+    {
+     "seq": "S112",
+     "strand": "+",
+     "position": 57
+    },
+    {
+     "seq": "S093",
+     "strand": "+",
+     "position": 126
+    },
+    {
+     "seq": "S081",
+     "strand": "+",
+     "position": 20
+    },
+    {
+     "seq": "S100",
+     "strand": "+",
+     "position": 103
+    },
+    {
+     "seq": "S095",
+     "strand": "+",
+     "position": 71
+    },
+    {
+     "seq": "S096",
+     "strand": "-",
+     "position": 70
+    },
+    {
+     "seq": "S070",
+     "strand": "+",
+     "position": 63
+    },
+    {
+     "seq": "S102",
+     "strand": "-",
+     "position": 62
+    },
+    {
+     "seq": "S075",
+     "strand": "-",
+     "position": 12
+    },
+    {
+     "seq": "S113",
+     "strand": "-",
+     "position": 129
+    },
+    {
+     "seq": "S094",
+     "strand": "+",
+     "position": 55
+    },
+    {
+     "seq": "S076",
+     "strand": "-",
+     "position": 126
+    },
+    {
+     "seq": "S104",
+     "strand": "+",
+     "position": 52
+    },
+    {
+     "seq": "S107",
+     "strand": "-",
+     "position": 116
+    },
+    {
+     "seq": "S082",
+     "strand": "+",
+     "position": 114
+    },
+    {
+     "seq": "S078",
+     "strand": "-",
+     "position": 115
+    },
+    {
+     "seq": "S084",
+     "strand": "+",
+     "position": 120
+    },
+    {
+     "seq": "S109",
+     "strand": "-",
+     "position": 63
+    },
+    {
+     "seq": "S066",
+     "strand": "-",
+     "position": 4
+    },
+    {
+     "seq": "S077",
+     "strand": "+",
+     "position": 50
+    },
+    {
+     "seq": "S097",
+     "strand": "+",
+     "position": 73
+    },
+    {
+     "seq": "S064",
+     "strand": "+",
+     "position": 31
+    },
+    {
+     "seq": "S068",
+     "strand": "+",
+     "position": 36
+    },
+    {
+     "seq": "S108",
+     "strand": "-",
+     "position": 67
+    },
+    {
+     "seq": "S091",
+     "strand": "-",
+     "position": 62
+    },
+    {
+     "seq": "S085",
+     "strand": "-",
+     "position": 104
+    },
+    {
+     "seq": "S101",
+     "strand": "-",
+     "position": 49
+    },
+    {
+     "seq": "S065",
+     "strand": "+",
+     "position": 103
+    },
+    {
+     "seq": "S073",
+     "strand": "-",
+     "position": 117
+    },
+    {
+     "seq": "S117",
+     "strand": "-",
+     "position": 86
+    },
+    {
+     "seq": "S061",
+     "strand": "+",
+     "position": 44
+    },
+    {
+     "seq": "S116",
+     "strand": "+",
+     "position": 103
+    },
+    {
+     "seq": "S119",
+     "strand": "-",
+     "position": 23
+    }
+   ]
+  }
+ },
+ "reverse_complements": {
+  "ACGTTGCA": "TGCAACGT",
+  "TTTGGCCA": "TGGCCAAA"
+ },
+ "target_model": {
+  "beta_a": 3.0,
+  "beta_b": -2.0,
+  "noise_sd": 0.5
+ }
+}

@@ -1,0 +1,1 @@
+fire.pl --expfiles=/root/omnigent/lab/kmer/kmer-learn/kmer/tests/data/enrichment_reference/clusters.txt --exptype=discrete --species=dummy --fastafile_dna=/root/omnigent/lab/kmer/kmer-learn/kmer/tests/data/enrichment_reference/seqs.fa --rootdir=/tmp/ref_fire

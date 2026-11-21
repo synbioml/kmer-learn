@@ -1,0 +1,273 @@
+{
+ "dataset": "scripts/generate_enrichment_dataset.py (seed 20071005)",
+ "generated": "2026-11-21",
+ "note": "Planted motifs ACGTTGCA (70% of cluster 0) and TTTGGCCA (65% of cluster 1); continuous target y = 3*nA - 2*nB + N(0, 0.5).",
+ "reduce": {
+  "tool": "REDUCE Suite (Bussemaker lab)",
+  "version": null,
+  "status": "unavailable: official distribution site offline, no mirror as of 2026-11; no official output recorded."
+ },
+ "dreme": {
+  "tool": "DREME",
+  "version": "5.5.5 (MEME Suite)",
+  "motifs": [
+   {
+    "id": "m01",
+    "seq": "ACGTTGCA",
+    "length": "8",
+    "nsites": "42",
+    "e_value": "5.4e-013",
+    "p_value": "7.3e-017"
+   }
+  ]
+ },
+ "homer": {
+  "tool": "HOMER",
+  "version": "v5.1",
+  "motifs": [
+   {
+    "consensus": "ACGTTGCA",
+    "targets_pct": 75.0,
+    "background_pct": 1.6,
+    "p_value": "1e-18"
+   },
+   {
+    "consensus": "TGCAACGT",
+    "targets_pct": 75.0,
+    "background_pct": 1.6,
+    "p_value": "1e-18"
+   },
+   {
+    "consensus": "TGTCATCW",
+    "targets_pct": 36.67,
+    "background_pct": 1.6,
+    "p_value": "1e-7"
+   },
+   {
+    "consensus": "WGATGACA",
+    "targets_pct": 36.67,
+    "background_pct": 1.6,
+    "p_value": "1e-7"
+   },
+   {
+    "consensus": "KAGATMAG",
+    "targets_pct": 48.33,
+    "background_pct": 6.92,
+    "p_value": "1e-7"
+   },
+   {
+    "consensus": "CTKATCTM",
+    "targets_pct": 48.33,
+    "background_pct": 6.92,
+    "p_value": "1e-7"
+   },
+   {
+    "consensus": "ACACGGCA",
+    "targets_pct": 26.67,
+    "background_pct": 0.97,
+    "p_value": "1e-5"
+   },
+   {
+    "consensus": "TGCCGTGT",
+    "targets_pct": 26.67,
+    "background_pct": 0.97,
+    "p_value": "1e-5"
+   },
+   {
+    "consensus": "GGAAAAAA",
+    "targets_pct": 30.0,
+    "background_pct": 4.99,
+    "p_value": "1e-3"
+   },
+   {
+    "consensus": "TTTTTTCC",
+    "targets_pct": 30.0,
+    "background_pct": 4.99,
+    "p_value": "1e-3"
+   }
+  ]
+ },
+ "fire": {
+  "tool": "FIRE",
+  "version": "github.com/hanig/FIRE e7417852 (2016-07-21)",
+  "significant_motifs": [
+   {
+    "motif": ".TGCAACG.",
+    "mi": 0.4395,
+    "unused": "0",
+    "z_score": 48.35,
+    "robustness": "10",
+    "seed": "TGCAACG"
+   },
+   {
+    "motif": ".TTGGCCA.",
+    "mi": 0.4427,
+    "unused": "0",
+    "z_score": 50.33,
+    "robustness": "10",
+    "seed": "TTGGCCA"
+   }
+  ],
+  "per_cluster": [
+   {
+    "motif": ".TGCAACG.",
+    "cluster": 0,
+    "present": 39,
+    "absent": 1,
+    "fraction": 0.7,
+    "cluster_size": 60
+   },
+   {
+    "motif": ".TGCAACG.",
+    "cluster": 1,
+    "present": 61,
+    "absent": 0,
+    "fraction": 0.017,
+    "cluster_size": 60
+   },
+   {
+    "motif": ".TTGGCCA.",
+    "cluster": 0,
+    "present": 64,
+    "absent": 0,
+    "fraction": 0.0,
+    "cluster_size": 60
+   },
+   {
+    "motif": ".TTGGCCA.",
+    "cluster": 1,
+    "present": 36,
+    "absent": 1,
+    "fraction": 0.65,
+    "cluster_size": 60
+   }
+  ]
+ },
+ "drimust": {
+  "tool": "DRIMUST",
+  "version": "github.com/YakhiniGroup/DRIMUST acacdf62 (2016-11-26)",
+  "header": [
+   "motif",
+   "reverse_complement_motif",
+   "mHG_score",
+   "corrected_score",
+   "N",
+   "B",
+   "n",
+   "b",
+   "Enrichment"
+  ],
+  "top_motifs": [
+   {
+    "motif": "TGCAACGT",
+    "rc": "ACGTTGCA",
+    "mhg_score": 1.3112069050956494e-33,
+    "corrected": 5.638189691911292e-32,
+    "N": 120,
+    "B": 43,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.7906976744186047
+   },
+   {
+    "motif": "TGCAACG",
+    "rc": "CGTTGCA",
+    "mhg_score": 1.3112069050956494e-33,
+    "corrected": 5.638189691911292e-32,
+    "N": 120,
+    "B": 43,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.7906976744186047
+   },
+   {
+    "motif": "TGCAAC",
+    "rc": "GTTGCA",
+    "mhg_score": 1.298094912298929e-30,
+    "corrected": 5.841427105345181e-29,
+    "N": 120,
+    "B": 45,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.6666666666666665
+   },
+   {
+    "motif": "GCAACGT",
+    "rc": "ACGTTGC",
+    "mhg_score": 1.298094912298929e-30,
+    "corrected": 5.841427105345181e-29,
+    "N": 120,
+    "B": 45,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.6666666666666665
+   },
+   {
+    "motif": "CAACGT",
+    "rc": "ACGTTG",
+    "mhg_score": 1.3096914548549473e-25,
+    "corrected": 6.548457274274737e-24,
+    "N": 120,
+    "B": 50,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.4
+   },
+   {
+    "motif": "GCAACG",
+    "rc": "CGTTGC",
+    "mhg_score": 1.3096914548549473e-25,
+    "corrected": 6.548457274274737e-24,
+    "N": 120,
+    "B": 50,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.4
+   },
+   {
+    "motif": "TGCAA",
+    "rc": "TTGCA",
+    "mhg_score": 5.752657272348298e-22,
+    "corrected": 3.163961499791564e-20,
+    "N": 120,
+    "B": 55,
+    "n": 43,
+    "b": 43,
+    "enrichment": 2.181818181818182
+   },
+   {
+    "motif": "CAACG",
+    "rc": "CGTTG",
+    "mhg_score": 1.7206342684631196e-18,
+    "corrected": 1.0495869037625029e-16,
+    "N": 120,
+    "B": 61,
+    "n": 43,
+    "b": 43,
+    "enrichment": 1.9672131147540985
+   },
+   {
+    "motif": "AACGT",
+    "rc": "ACGTT",
+    "mhg_score": 5.3901973445728756e-17,
+    "corrected": 3.4497263005266404e-15,
+    "N": 120,
+    "B": 64,
+    "n": 43,
+    "b": 43,
+    "enrichment": 1.875
+   },
+   {
+    "motif": "GCAAC",
+    "rc": "GTTGC",
+    "mhg_score": 5.3901973445728756e-17,
+    "corrected": 3.4497263005266404e-15,
+    "N": 120,
+    "B": 64,
+    "n": 43,
+    "b": 43,
+    "enrichment": 1.875
+   }
+  ]
+ }
+}
