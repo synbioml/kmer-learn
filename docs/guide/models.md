@@ -223,8 +223,7 @@ print("probabilities:\n", np.round(knn.predict_proba(queries), 3))
 
 KNN computes a query-by-training distance matrix at prediction time. Use a
 proper distance such as Hamming or Levenshtein; raw alignment scores have the
-opposite direction. For large reference collections, consider
-{class}`kmer.ann.ANNIndex`.
+opposite direction.
 
 ## Evaluation guidance
 
@@ -243,5 +242,4 @@ opposite direction. For large reference collections, consider
 - Review representations in {doc}`encoders`, {doc}`distances`, and
   {doc}`kernels`.
 - Design negative controls with {doc}`background`.
-- Scale neighbor retrieval with {doc}`ann`.
 - Consult {doc}`../api/models` for estimator signatures and attributes.

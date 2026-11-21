@@ -10,7 +10,6 @@ Start with the kind of comparison or prediction your analysis needs.
 | Compare regulatory sequences with gapped motifs | `GKMKernel` or `WGKMKernel` | `KernelSVM` |
 | Classify using edit or alignment similarity | A class from `kmer.distance` | `KNNClassifier` or `DistanceKernel` |
 | Generate matched negative sequences | `KmerShuffler`, `Chunker`, or their local variants | A downstream classifier or scorer |
-| Find neighbors in a large sequence collection | An `ANNIndex` metric | HNSW approximate search |
 | Locate sequence signal along a long region | A windowed GKM kernel | Sliding-window scoring |
 
 ## A useful first path

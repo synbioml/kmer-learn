@@ -26,31 +26,19 @@ if sys.platform == "win32":
     _BASE_COMPILE_ARGS = ["/O2", "/W3"]
     _OPENMP_COMPILE_ARGS = ["/openmp"]
     _OPENMP_LINK_ARGS = []
-    _CXX_STANDARD_ARGS = ["/std:c++14"]
-    _CXX_WARNING_ARGS = []
     _MATH_LIBRARIES = []
 elif sys.platform == "darwin":
     _BASE_COMPILE_ARGS = ["-O3", "-Wall"]
     _OPENMP_COMPILE_ARGS = []
     _OPENMP_LINK_ARGS = []
-    _CXX_STANDARD_ARGS = ["-std=c++11"]
-    _CXX_WARNING_ARGS = ["-Wno-write-strings"]
     _MATH_LIBRARIES = ["m"]
 else:
     _BASE_COMPILE_ARGS = ["-O3", "-Wall"]
     _OPENMP_COMPILE_ARGS = ["-fopenmp"]
     _OPENMP_LINK_ARGS = ["-fopenmp"]
-    _CXX_STANDARD_ARGS = ["-std=c++11"]
-    _CXX_WARNING_ARGS = ["-Wno-write-strings"]
     _MATH_LIBRARIES = ["m"]
 
 _C_OPENMP_ARGS = _BASE_COMPILE_ARGS + _OPENMP_COMPILE_ARGS
-_CXX_OPENMP_ARGS = (
-    _CXX_STANDARD_ARGS
-    + _BASE_COMPILE_ARGS
-    + _CXX_WARNING_ARGS
-    + _OPENMP_COMPILE_ARGS
-)
 
 
 def _ext(name, sources, include_dirs=None, extra_compile_args=None,
@@ -134,20 +122,7 @@ complexity_ext = _ext(
     include_dirs=["kmer/stats/_native"],
 )
 
-
-# --- ann: HNSW index (C++ with vendored hnswlib) ----------------------
-ann_ext = Extension(
-    name="kmer.ann._native._hnsw",
-    sources=["kmer/ann/_native/_gkm_hnsw.cpp"],
-    include_dirs=["kmer", "kmer/ann/_native", "kmer/kernels/_native"],
-    language="c++",
-    extra_compile_args=_CXX_OPENMP_ARGS,
-    extra_link_args=_OPENMP_LINK_ARGS,
-    libraries=_MATH_LIBRARIES,
-)
-
 setup(
     ext_modules=[gkm_ext, shuffler_ext, chunker_ext, local_ext,
-                 spectrum_ext, gappy_ext, mismatch_ext, complexity_ext,
-                 ann_ext],
+                 spectrum_ext, gappy_ext, mismatch_ext, complexity_ext],
 )

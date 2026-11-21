@@ -180,12 +180,11 @@ transform combination; check eigenvalues when that property is required.
   local matches.
 - Treat raw alignment output as a score. Set `as_distance=True` for KNN or a
   distance transform.
-- Pairwise methods scale quadratically in collection size; use
-  {class}`kmer.ann.ANNIndex` when exhaustive comparison becomes too costly.
+- Pairwise methods scale quadratically in collection size; subsample or
+  index the collection before exhaustive comparison.
 
 ## Next steps
 
 - Fit {class}`kmer.models.KNNClassifier` or
   {class}`kmer.models.KernelSVM` in {doc}`models`.
-- Scale nearest-neighbor search with {doc}`ann`.
 - Consult {doc}`../api/distance` for all parameters and transforms.

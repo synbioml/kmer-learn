@@ -3,8 +3,8 @@
 **Classical machine-learning tools for nucleotide sequences.**
 
 `kmer-learn` provides sparse k-mer encoders, sequence distances, gapped k-mer
-kernels, scikit-learn-compatible models, sequence perturbation methods, and
-approximate nearest-neighbor search. Performance-critical operations use native
+kernels, scikit-learn-compatible models, and sequence perturbation methods.
+Performance-critical operations use native
 extensions while the public workflows remain Pythonic.
 
 ::::{grid} 1 2 2 2
